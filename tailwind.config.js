@@ -4,7 +4,30 @@ module.exports = {
   content: ["./app/**/*.{js,jsx,ts,tsx}"],
   presets: [require("nativewind/preset")],
   theme: {
-    extend: {},
+    extend: {
+      colors: {
+        // 🔥 Core
+        primary: "#020617", // APP BACKGROUND (single source of truth)
+
+        // 🧱 Surfaces
+        surface: "#020617", // same as primary, explicit meaning
+        card: "#1E293B",
+        border: "#334155",
+
+        // 🎯 Brand / highlights
+        secondary: "#C9A961",
+
+        // 🧠 Text
+        text: {
+          primary: "#FFFFFF",
+          secondary: "#94A3B8",
+          muted: "#64748B",
+        },
+
+        // ⚠️ States
+        destructive: "#EF4444",
+      },
+    },
   },
   plugins: [],
 };
