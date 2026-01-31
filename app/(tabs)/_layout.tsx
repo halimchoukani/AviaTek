@@ -11,13 +11,9 @@ export default function TabLayout() {
         tabBarStyle: {
           backgroundColor: "#020617", // darker slate
           borderTopColor: "#1e293b",
-          flexDirection: "row",
-          justifyContent: "center",
-          alignItems: "center",
           height: 60 + insets.bottom,
           paddingBottom: insets.bottom,
           paddingTop: 10,
-
         },
         tabBarActiveTintColor: "#C9A961",
         tabBarInactiveTintColor: "#64748B",

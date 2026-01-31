@@ -1,17 +1,17 @@
 import {
-    Feather,
-    FontAwesome5,
-    MaterialCommunityIcons
+  Feather,
+  FontAwesome5,
+  MaterialCommunityIcons
 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
-    FlatList,
-    StatusBar,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  FlatList,
+  StatusBar,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
