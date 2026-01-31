@@ -3,6 +3,8 @@ import { useState } from "react";
 import { ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import MaterielView from "../../components/MaterielView";
+
 const STAFF_DATA = [
   {
     id: 1,
@@ -64,8 +66,8 @@ export default function Resources() {
           <TouchableOpacity
             onPress={() => setActiveTab("personnel")}
             className={`pb-3 mr-8 ${activeTab === "personnel"
-                ? "border-b-2 border-secondary"
-                : "border-transparent"
+              ? "border-b-2 border-secondary"
+              : "border-transparent"
               }`}
           >
             <Text
@@ -78,8 +80,8 @@ export default function Resources() {
           <TouchableOpacity
             onPress={() => setActiveTab("materiel")}
             className={`pb-3 ${activeTab === "materiel"
-                ? "border-b-2 border-secondary"
-                : "border-transparent"
+              ? "border-b-2 border-secondary"
+              : "border-transparent"
               }`}
           >
             <Text
@@ -127,20 +129,20 @@ export default function Resources() {
                         </Text>
                       </View>
                       <View className={`px-3 py-1 rounded-full border ${staff.status === "ON DUTY"
-                          ? "border-gray-700 bg-gray-900/50"
-                          : staff.status === "AVAILABLE"
-                            ? "border-green-900/30 bg-green-900/10"
-                            : "border-gray-700 bg-gray-900/50"
+                        ? "border-gray-700 bg-gray-900/50"
+                        : staff.status === "AVAILABLE"
+                          ? "border-green-900/30 bg-green-900/10"
+                          : "border-gray-700 bg-gray-900/50"
                         }`}>
                         <View className="flex-row items-center gap-2">
                           <View className={`w-2 h-2 rounded-full ${staff.status === "ON DUTY"
-                              ? "bg-secondary"
-                              : staff.status === "AVAILABLE"
-                                ? "bg-green-500"
-                                : "bg-gray-500"
+                            ? "bg-secondary"
+                            : staff.status === "AVAILABLE"
+                              ? "bg-green-500"
+                              : "bg-gray-500"
                             }`} />
                           <Text className={`text-[10px] font-bold ${staff.status === "AVAILABLE" ? "text-green-500" :
-                              staff.status === "ON DUTY" ? "text-secondary" : "text-gray-500"
+                            staff.status === "ON DUTY" ? "text-secondary" : "text-gray-500"
                             }`}>
                             {staff.status}
                           </Text>
@@ -181,9 +183,7 @@ export default function Resources() {
               </View>
             </>
           ) : (
-            <View className="items-center justify-center py-20">
-              <Text className="text-gray-500">Materiel Content Coming Soon</Text>
-            </View>
+            <MaterielView />
           )}
         </ScrollView>
       </View>
