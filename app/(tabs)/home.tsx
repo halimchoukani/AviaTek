@@ -36,7 +36,8 @@ export default function Home() {
               <FontAwesome5 name="building" size={20} color="#C9A961" />
             </View>
             <View>
-              <Text className="text-lg font-bold text-white">
+              <Text className="text-lg font-bold text-white"
+                          onPress={() => router.push("/profile")}>
                 Horizon Academy
               </Text>
               <Text className="text-sm font-medium text-secondary">
@@ -45,7 +46,8 @@ export default function Home() {
             </View>
           </View>
 
-          <TouchableOpacity className="p-2">
+          <TouchableOpacity
+            className="p-2" >
             <Feather name="chevron-right" size={24} color="#64748B" />
           </TouchableOpacity>
         </View>
