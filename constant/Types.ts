@@ -17,3 +17,14 @@ export interface Request {
   reason?: string;
   isUrgent?: boolean;
 }
+
+export interface Course {
+  id: string;
+  code: string;
+  title: string;
+  description: string;
+  progress: number;
+  enrolled: number;
+  category: string;
+  color: string;
+}

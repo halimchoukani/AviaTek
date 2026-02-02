@@ -94,3 +94,46 @@ export const MOCK_REQUESTS: Request[] = [
     isUrgent: true,
   },
 ];
+
+export const COURSES_DATA = [
+  {
+    id: "1",
+    code: "PPL-GROUND",
+    title: "Private Pilot License - Ground School",
+    description: "Complete ground training for PPL certification",
+    progress: 78,
+    enrolled: 24,
+    category: "Flight Training",
+    color: "#C9A961",
+  },
+  {
+    id: "2",
+    code: "IR-THEORY",
+    title: "Instrument Rating - Theory",
+    description: "Instrument flight rules and procedures",
+    progress: 45,
+    enrolled: 18,
+    category: "Flight Training",
+    color: "#F59E0B",
+  },
+  {
+    id: "3",
+    code: "CRM-BASIC",
+    title: "Crew Resource Management",
+    description: "Essential CRM skills for multi-crew operations",
+    progress: 92,
+    enrolled: 42,
+    category: "Safety & Procedures",
+    color: "#C9A961",
+  },
+  {
+    id: "4",
+    code: "AERO-MED",
+    title: "Aviation Medical Factors",
+    description: "Human factors and aeromedical considerations",
+    progress: 100,
+    enrolled: 36,
+    category: "Safety & Procedures",
+    color: "#10B981",
+  },
+];
