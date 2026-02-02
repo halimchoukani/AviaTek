@@ -19,6 +19,7 @@ export default function StatsCard({ label, value, valueColor = "text-white" }: {
 
 const styles = StyleSheet.create({
     container: {
+        flex: 1,
         borderRadius: 12,
         backgroundColor: '#1E293B',
         padding: 16,
