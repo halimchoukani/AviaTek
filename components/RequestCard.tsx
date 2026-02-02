@@ -13,10 +13,14 @@ export default function RequestCard({
   request,
   expanded,
   onToggle,
+  onApprove,
+  onReject,
 }: {
   request: Request;
   expanded: boolean;
   onToggle: () => void;
+  onApprove?: () => void;
+  onReject?: () => void;
 }) {
   const statusColors = STATUS_COLORS[request.status];
   const typeColors =
@@ -145,7 +149,7 @@ export default function RequestCard({
 
           {request.status === "Pending" && (
             <View style={styles.actionsRow}>
-              <TouchableOpacity style={styles.approveBtn}>
+              <TouchableOpacity style={styles.approveBtn} onPress={onApprove}>
                 <Feather
                   name="check-circle"
                   size={18}
@@ -155,7 +159,7 @@ export default function RequestCard({
                 <Text style={styles.approveText}>Approve</Text>
               </TouchableOpacity>
 
-              <TouchableOpacity style={styles.rejectBtn}>
+              <TouchableOpacity style={styles.rejectBtn} onPress={onReject}>
                 <Feather
                   name="x-circle"
                   size={18}

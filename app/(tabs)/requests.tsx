@@ -16,14 +16,27 @@ export default function RequestsScreen() {
   const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState("All");
   const [expandedId, setExpandedId] = useState<string | null>("0"); // Start with first expanded as per design
+  const [requests, setRequests] = useState(MOCK_REQUESTS);
 
   const stats = {
-    total: 5,
-    approved: 1,
-    pending: 3,
+    total: requests.length,
+    approved: requests.filter(r => r.status === "Approved").length,
+    pending: requests.filter(r => r.status === "Pending").length,
   };
 
-  const filteredRequests = MOCK_REQUESTS.filter((req) => {
+  const handleApprove = (id: string) => {
+    setRequests(prev => prev.map(req =>
+      req.id === id ? { ...req, status: "Approved" as const } : req
+    ));
+  };
+
+  const handleReject = (id: string) => {
+    setRequests(prev => prev.map(req =>
+      req.id === id ? { ...req, status: "Rejected" as const } : req
+    ));
+  };
+
+  const filteredRequests = requests.filter((req) => {
     if (activeFilter === "All") return true;
     return req.status === activeFilter;
   });
@@ -40,7 +53,7 @@ export default function RequestsScreen() {
             </View>
             <View style={styles.pendingBadge}>
               <Feather name="alert-circle" size={14} color="#F59E0B" />
-              <Text style={styles.pendingBadgeText}>3 Pending</Text>
+              <Text style={styles.pendingBadgeText}>{stats.pending} Pending</Text>
             </View>
           </View>
 
@@ -94,6 +107,8 @@ export default function RequestsScreen() {
               onToggle={() =>
                 setExpandedId(expandedId === item.id ? null : item.id)
               }
+              onApprove={() => handleApprove(item.id)}
+              onReject={() => handleReject(item.id)}
             />
           )}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
