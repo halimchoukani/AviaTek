@@ -1,6 +1,6 @@
 import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
-import { ScrollView, StatusBar, Text, TouchableOpacity, View } from "react-native";
+import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import MaterielView from "../../components/MaterielView";
@@ -48,45 +48,49 @@ export default function Resources() {
   const [activeTab, setActiveTab] = useState<"personnel" | "materiel">("personnel");
 
   return (
-    <SafeAreaView className="flex-1 bg-primary">
+    <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
-      <View className="flex-1 px-6 pt-2">
+      <View style={styles.safeContent}>
         {/* Header */}
-        <View className="py-4">
-          <Text className="text-xl font-bold text-white">
+        <View style={styles.header}>
+          <Text style={styles.headerTitle}>
             Resource Management
           </Text>
-          <Text className="text-sm font-medium text-secondary mt-1">
+          <Text style={styles.headerSubtitle}>
             Academy Operations
           </Text>
         </View>
 
         {/* Tabs */}
-        <View className="flex-row border-b border-gray-800 mb-6">
+        <View style={styles.tabsContainer}>
           <TouchableOpacity
             onPress={() => setActiveTab("personnel")}
-            className={`pb-3 mr-8 ${activeTab === "personnel"
-              ? "border-b-2 border-secondary"
-              : "border-transparent"
-              }`}
+            style={[
+              styles.tab,
+              activeTab === "personnel" ? styles.tabActive : styles.tabInactive
+            ]}
           >
             <Text
-              className={`text-base font-medium ${activeTab === "personnel" ? "text-secondary" : "text-gray-400"
-                }`}
+              style={[
+                styles.tabText,
+                activeTab === "personnel" ? styles.tabTextActive : styles.tabTextInactive
+              ]}
             >
               Personnel
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
             onPress={() => setActiveTab("materiel")}
-            className={`pb-3 ${activeTab === "materiel"
-              ? "border-b-2 border-secondary"
-              : "border-transparent"
-              }`}
+            style={[
+              styles.tab,
+              activeTab === "materiel" ? styles.tabActive : styles.tabInactive
+            ]}
           >
             <Text
-              className={`text-base font-medium ${activeTab === "materiel" ? "text-secondary" : "text-gray-400"
-                }`}
+              style={[
+                styles.tabText,
+                activeTab === "materiel" ? styles.tabTextActive : styles.tabTextInactive
+              ]}
             >
               Materiel
             </Text>
@@ -97,53 +101,55 @@ export default function Resources() {
           {activeTab === "personnel" ? (
             <>
               {/* Stats Row */}
-              <View className="flex-row gap-4 mb-6">
-                <View className="flex-1 bg-card p-4 rounded-xl">
-                  <View className="flex-row justify-between items-start mb-2">
-                    <Text className="text-gray-400 text-xs">Total Pilots</Text>
+              <View style={styles.statsRow}>
+                <View style={styles.statsCard}>
+                  <View style={styles.statsHeader}>
+                    <Text style={styles.statsLabel}>Total Pilots</Text>
                     <Feather name="users" size={16} color="#94A3B8" />
                   </View>
-                  <Text className="text-2xl font-bold text-white">4</Text>
+                  <Text style={styles.statsValue}>4</Text>
                 </View>
-                <View className="flex-1 bg-card p-4 rounded-xl">
-                  <View className="flex-row justify-between items-start mb-2">
-                    <Text className="text-gray-400 text-xs">On Duty</Text>
+                <View style={styles.statsCard}>
+                  <View style={styles.statsHeader}>
+                    <Text style={styles.statsLabel}>On Duty</Text>
                     <Feather name="activity" size={16} color="#C9A961" />
                   </View>
-                  <Text className="text-2xl font-bold text-secondary">2</Text>
+                  <Text style={[styles.statsValue, styles.textSecondary]}>2</Text>
                 </View>
               </View>
 
               {/* Personnel List */}
-              <View className="gap-4 pb-6">
+              <View style={styles.listContainer}>
                 {STAFF_DATA.map((staff) => (
-                  <View key={staff.id} className="bg-card p-4 rounded-xl border border-gray-800">
+                  <View key={staff.id} style={styles.card}>
                     {/* Header */}
-                    <View className="flex-row justify-between items-start mb-2">
+                    <View style={styles.cardHeader}>
                       <View>
-                        <Text className="text-lg font-bold text-white">
+                        <Text style={styles.cardTitle}>
                           {staff.name}
                         </Text>
-                        <Text className="text-sm text-gray-500 mt-1">
+                        <Text style={styles.cardSubtitle}>
                           {staff.role}
                         </Text>
                       </View>
-                      <View className={`px-3 py-1 rounded-full border ${staff.status === "ON DUTY"
-                        ? "border-gray-700 bg-gray-900/50"
-                        : staff.status === "AVAILABLE"
-                          ? "border-green-900/30 bg-green-900/10"
-                          : "border-gray-700 bg-gray-900/50"
-                        }`}>
-                        <View className="flex-row items-center gap-2">
-                          <View className={`w-2 h-2 rounded-full ${staff.status === "ON DUTY"
-                            ? "bg-secondary"
-                            : staff.status === "AVAILABLE"
-                              ? "bg-green-500"
-                              : "bg-gray-500"
-                            }`} />
-                          <Text className={`text-[10px] font-bold ${staff.status === "AVAILABLE" ? "text-green-500" :
-                            staff.status === "ON DUTY" ? "text-secondary" : "text-gray-500"
-                            }`}>
+                      <View style={[
+                        styles.badge,
+                        staff.status === "AVAILABLE" ? styles.badgeAvailable : styles.badgeDefault
+                      ]}>
+                        <View style={styles.badgeContent}>
+                          <View style={[
+                            styles.statusDot,
+                            staff.status === "ON DUTY"
+                              ? styles.bgSecondary
+                              : staff.status === "AVAILABLE"
+                                ? styles.bgGreen
+                                : styles.bgGray
+                          ]} />
+                          <Text style={[
+                            styles.badgeText,
+                            staff.status === "AVAILABLE" ? styles.textGreen :
+                              staff.status === "ON DUTY" ? styles.textSecondary : styles.textGray
+                          ]}>
                             {staff.status}
                           </Text>
                         </View>
@@ -151,10 +157,10 @@ export default function Resources() {
                     </View>
 
                     {/* Tags */}
-                    <View className="flex-row gap-2 mb-4">
+                    <View style={styles.tagsContainer}>
                       {staff.tags.map((tag, index) => (
-                        <View key={index} className="bg-primary px-3 py-1 rounded-md border border-gray-800">
-                          <Text className="text-xs font-medium text-gray-300">
+                        <View key={index} style={styles.tag}>
+                          <Text style={styles.tagText}>
                             {tag}
                           </Text>
                         </View>
@@ -162,17 +168,17 @@ export default function Resources() {
                     </View>
 
                     {/* Footer */}
-                    <View className="pt-3 border-t border-gray-800 flex-row justify-between items-center">
-                      <View className="flex-row items-center gap-2">
+                    <View style={styles.cardFooter}>
+                      <View style={styles.footerItem}>
                         <Feather name="clock" size={14} color="#94A3B8" />
-                        <Text className="text-sm text-gray-400">
+                        <Text style={styles.footerText}>
                           {staff.hours} hrs
                         </Text>
                       </View>
                       {staff.location && (
-                        <View className="flex-row items-center gap-2">
+                        <View style={styles.footerItem}>
                           <Feather name="map-pin" size={14} color="#C9A961" />
-                          <Text className="text-sm text-secondary">
+                          <Text style={[styles.footerText, styles.textSecondary]}>
                             {staff.location}
                           </Text>
                         </View>
@@ -190,3 +196,190 @@ export default function Resources() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#020617",
+  },
+  safeContent: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 8,
+  },
+  header: {
+    paddingVertical: 16,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    fontWeight: "500",
+    color: "#C9A961",
+    marginTop: 4,
+  },
+  tabsContainer: {
+    flexDirection: "row",
+    borderBottomWidth: 1,
+    borderBottomColor: "#1F2937",
+    marginBottom: 24,
+  },
+  tab: {
+    paddingBottom: 12,
+    marginRight: 32,
+    borderBottomWidth: 2,
+  },
+  tabActive: {
+    borderBottomColor: "#C9A961",
+  },
+  tabInactive: {
+    borderBottomColor: "transparent",
+  },
+  tabText: {
+    fontSize: 16,
+    fontWeight: "500",
+  },
+  tabTextActive: {
+    color: "#C9A961",
+  },
+  tabTextInactive: {
+    color: "#9CA3AF",
+  },
+  statsRow: {
+    flexDirection: "row",
+    gap: 16,
+    marginBottom: 24,
+  },
+  statsCard: {
+    flex: 1,
+    backgroundColor: "#1E293B",
+    padding: 16,
+    borderRadius: 12,
+  },
+  statsHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
+  statsLabel: {
+    color: "#94A3B8",
+    fontSize: 12,
+  },
+  statsValue: {
+    fontSize: 24,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  listContainer: {
+    gap: 16,
+    paddingBottom: 24,
+  },
+  card: {
+    backgroundColor: "#1E293B",
+    padding: 16,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: "#1F2937",
+  },
+  cardHeader: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-start",
+    marginBottom: 8,
+  },
+  cardTitle: {
+    fontSize: 18,
+    fontWeight: "bold",
+    color: "#FFFFFF",
+  },
+  cardSubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginTop: 4,
+  },
+  badge: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 9999,
+    borderWidth: 1,
+  },
+  badgeAvailable: {
+    borderColor: "rgba(6, 78, 59, 0.3)",
+    backgroundColor: "rgba(6, 78, 59, 0.1)",
+  },
+  badgeDefault: {
+    borderColor: "#374151",
+    backgroundColor: "rgba(17, 24, 39, 0.5)",
+  },
+  badgeContent: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  statusDot: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+  },
+  badgeText: {
+    fontSize: 10,
+    fontWeight: "bold",
+  },
+  tagsContainer: {
+    flexDirection: "row",
+    gap: 8,
+    marginBottom: 16,
+  },
+  tag: {
+    backgroundColor: "#020617",
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 6,
+    borderWidth: 1,
+    borderColor: "#1F2937",
+  },
+  tagText: {
+    fontSize: 12,
+    fontWeight: "500",
+    color: "#D1D5DB",
+  },
+  cardFooter: {
+    paddingTop: 12,
+    borderTopWidth: 1,
+    borderTopColor: "#1F2937",
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  footerItem: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 8,
+  },
+  footerText: {
+    fontSize: 14,
+    color: "#94A3B8",
+  },
+  textSecondary: {
+    color: "#C9A961",
+  },
+  textGreen: {
+    color: "#22C55E",
+  },
+  textGray: {
+    color: "#6B7280",
+  },
+  bgSecondary: {
+    backgroundColor: "#C9A961",
+  },
+  bgGreen: {
+    backgroundColor: "#22C55E",
+  },
+  bgGray: {
+    backgroundColor: "#6B7280",
+  },
+});

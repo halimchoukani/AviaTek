@@ -1,5 +1,3 @@
-
-// ... existing imports ...
 import RequestCard from "@/components/RequestCard";
 import StatsCard from "@/components/StatsCard";
 import { MOCK_REQUESTS } from "@/constant/Variables";
@@ -7,6 +5,7 @@ import { Feather } from "@expo/vector-icons";
 import React, { useState } from "react";
 import {
   FlatList,
+  StyleSheet,
   Text,
   TouchableOpacity,
   View
@@ -30,23 +29,23 @@ export default function RequestsScreen() {
   });
 
   return (
-    <SafeAreaView className="flex-1 bg-slate-950">
-      <View className="flex-1 px-6 pt-2">
+    <SafeAreaView style={styles.container}>
+      <View style={styles.content}>
         <>
           {/* Header */}
-          <View className="flex-row items-center justify-between py-4">
+          <View style={styles.header}>
             <View>
-              <Text className="text-xl font-bold text-slate-50">Training Requests</Text>
-              <Text className="text-xs text-[#C9A961] mt-1">Fleet Training Validation</Text>
+              <Text style={styles.headerTitle}>Training Requests</Text>
+              <Text style={styles.headerSubtitle}>Fleet Training Validation</Text>
             </View>
-            <View className="flex-row items-center bg-amber-500/15 px-2.5 py-1.5 rounded-full border border-amber-500/30">
+            <View style={styles.pendingBadge}>
               <Feather name="alert-circle" size={14} color="#F59E0B" />
-              <Text className="text-amber-500 text-xs font-semibold ml-1.5">3 Pending</Text>
+              <Text style={styles.pendingBadgeText}>3 Pending</Text>
             </View>
           </View>
 
           {/* Stats Cards */}
-          <View className="mt-4 flex-row gap-3">
+          <View style={styles.statsRow}>
             <StatsCard label="Total" value={stats.total.toString()} />
             <StatsCard
               label="Approved"
@@ -59,19 +58,23 @@ export default function RequestsScreen() {
           </View>
 
           {/* Filters */}
-          <View className="mt-4 flex-row gap-3">
+          <View style={styles.filtersRow}>
             {["All", "Pending", "Approved", "Rejected"].map((filter) => (
               <TouchableOpacity
                 key={filter}
-                className={`px-4 py-2 rounded-lg border ${activeFilter === filter
-                  ? "bg-[#C9A961] border-[#C9A961]"
-                  : "bg-slate-800 border-slate-700"
-                  }`}
+                style={[
+                  styles.filterButton,
+                  activeFilter === filter
+                    ? styles.filterButtonActive
+                    : styles.filterButtonInactive
+                ]}
                 onPress={() => setActiveFilter(filter)}
               >
                 <Text
-                  className={`text-[13px] font-medium ${activeFilter === filter ? "text-slate-900 font-bold" : "text-slate-400"
-                    }`}
+                  style={[
+                    styles.filterButtonText,
+                    activeFilter === filter ? styles.filterButtonTextActive : styles.filterButtonTextInactive
+                  ]}
                 >
                   {filter}
                 </Text>
@@ -80,10 +83,10 @@ export default function RequestsScreen() {
           </View>
         </>
         <FlatList
-          className="mt-5"
+          style={styles.list}
           data={filteredRequests}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingBottom: 80 }}
+          contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
             <RequestCard
               request={item}
@@ -93,12 +96,101 @@ export default function RequestsScreen() {
               }
             />
           )}
-          ItemSeparatorComponent={() => <View className="h-4" />}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+          showsVerticalScrollIndicator={false}
         />
       </View>
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    backgroundColor: "#020617",
+  },
+  content: {
+    flex: 1,
+    paddingHorizontal: 24,
+    paddingTop: 8,
+  },
+  header: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    paddingVertical: 16,
+  },
+  headerTitle: {
+    fontSize: 20,
+    fontWeight: "bold",
+    color: "#F8FAFC",
+  },
+  headerSubtitle: {
+    fontSize: 12,
+    color: "#C9A961",
+    marginTop: 4,
+  },
+  pendingBadge: {
+    flexDirection: "row",
+    alignItems: "center",
+    backgroundColor: "rgba(245, 158, 11, 0.15)",
+    paddingHorizontal: 10,
+    paddingVertical: 6,
+    borderRadius: 9999,
+    borderWidth: 1,
+    borderColor: "rgba(245, 158, 11, 0.3)",
+  },
+  pendingBadgeText: {
+    color: "#F59E0B",
+    fontSize: 12,
+    fontWeight: "600",
+    marginLeft: 6,
+  },
+  statsRow: {
+    marginTop: 16,
+    flexDirection: "row",
+    gap: 12,
+  },
+  filtersRow: {
+    marginTop: 16,
+    flexDirection: "row",
+    gap: 12,
+  },
+  filterButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: 1,
+  },
+  filterButtonActive: {
+    backgroundColor: "#C9A961",
+    borderColor: "#C9A961",
+  },
+  filterButtonInactive: {
+    backgroundColor: "#1E293B",
+    borderColor: "#334155",
+  },
+  filterButtonText: {
+    fontSize: 13,
+    fontWeight: "500",
+  },
+  filterButtonTextActive: {
+    color: "#020617",
+    fontWeight: "bold",
+  },
+  filterButtonTextInactive: {
+    color: "#94A3B8",
+  },
+  list: {
+    marginTop: 20,
+  },
+  listContent: {
+    paddingBottom: 80,
+  },
+  separator: {
+    height: 16,
+  },
+});
 
 
 

@@ -1,5 +1,5 @@
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
-import { Text, View } from "react-native";
+import { StyleSheet, Text, View } from "react-native";
 
 const FLEET_DATA = [
     {
@@ -55,72 +55,78 @@ const SIM_DATA = [
 
 export default function MaterielView() {
     return (
-        <View className="pb-6">
+        <View style={styles.container}>
             {/* Stats Row */}
-            <View className="flex-row gap-4 mb-4">
-                <View className="flex-1 bg-card  p-4 rounded-xl">
-                    <View className="flex-row justify-between items-start mb-2">
-                        <Text className="text-gray-400 text-xs">Fleet Size</Text>
+            <View style={styles.statsRow}>
+                <View style={styles.statsCard}>
+                    <View style={styles.statsHeader}>
+                        <Text style={styles.statsLabel}>Fleet Size</Text>
                         <FontAwesome5 name="plane" size={16} color="#94A3B8" />
                     </View>
-                    <Text className="text-2xl font-bold text-white">4</Text>
+                    <Text style={styles.statsValue}>4</Text>
                 </View>
-                <View className="flex-1 bg-card p-4 rounded-xl">
-                    <View className="flex-row justify-between items-start mb-2">
-                        <Text className="text-gray-400 text-xs">Operational</Text>
+                <View style={styles.statsCard}>
+                    <View style={styles.statsHeader}>
+                        <Text style={styles.statsLabel}>Operational</Text>
                         <Feather name="activity" size={16} color="#4ADE80" />
                     </View>
-                    <Text className="text-2xl font-bold text-green-500">2</Text>
+                    <Text style={[styles.statsValue, styles.textGreen]}>2</Text>
                 </View>
             </View>
 
             {/* Fleet Status Section */}
-            <View className="mb-6">
-                <View className="flex-row items-center gap-2 mb-4">
+            <View style={styles.section}>
+                <View style={styles.sectionHeader}>
                     <FontAwesome5 name="plane" size={14} color="#94A3B8" />
-                    <Text className="text-gray-400 font-medium">Fleet Status</Text>
+                    <Text style={styles.sectionTitle}>Fleet Status</Text>
                 </View>
 
-                <View className="gap-3">
+                <View style={styles.listContainer}>
                     {FLEET_DATA.map((aircraft) => (
                         <View
                             key={aircraft.id}
-                            className="bg-card p-4 rounded-xl border border-gray-800"
+                            style={styles.card}
                         >
-                            <View className="flex-row justify-between items-start mb-4">
+                            <View style={styles.cardHeader}>
                                 <View>
-                                    <Text className="text-lg font-bold text-white">
+                                    <Text style={styles.cardTitle}>
                                         {aircraft.name}
                                     </Text>
-                                    <Text className="text-xs text-white mt-1">
+                                    <Text style={styles.cardSubtitle}>
                                         {aircraft.type}
                                     </Text>
                                 </View>
 
                                 <View
-                                    className={`px-3 py-1 rounded-full border ${aircraft.status === "OPERATIONAL"
-                                            ? "border-green-900/30 bg-green-900/10"
+                                    style={[
+                                        styles.badge,
+                                        aircraft.status === "OPERATIONAL"
+                                            ? styles.badgeOperational
                                             : aircraft.status === "MAINTENANCE"
-                                                ? "border-yellow-900/30 bg-yellow-900/10"
-                                                : "border-gray-700 bg-gray-900/50"
-                                        }`}
+                                                ? styles.badgeMaintenance
+                                                : styles.badgeGrounded
+                                    ]}
                                 >
-                                    <View className="flex-row items-center gap-2">
+                                    <View style={styles.badgeContent}>
                                         <View
-                                            className={`w-1.5 h-1.5 rounded-full ${aircraft.status === "OPERATIONAL"
-                                                    ? "bg-green-500"
+                                            style={[
+                                                styles.statusDot,
+                                                aircraft.status === "OPERATIONAL"
+                                                    ? styles.bgGreen
                                                     : aircraft.status === "MAINTENANCE"
-                                                        ? "bg-yellow-500"
-                                                        : "bg-gray-500"
-                                                }`}
+                                                        ? styles.bgYellow
+                                                        : styles.bgGray
+                                            ]}
                                         />
                                         <Text
-                                            className={`text-[10px] font-bold ${aircraft.status === "OPERATIONAL"
-                                                    ? "text-green-500"
+                                            style={[
+                                                styles.badgeText,
+                                                aircraft.status === "OPERATIONAL"
+                                                    ? styles.textGreen
                                                     : aircraft.status === "MAINTENANCE"
-                                                        ? "text-yellow-500"
-                                                        : "text-gray-00"
-                                                }`}
+                                                        ? styles.textYellow
+                                                        : styles.textGray
+                                            ]}
                                         >
                                             {aircraft.status}
                                         </Text>
@@ -128,16 +134,16 @@ export default function MaterielView() {
                                 </View>
                             </View>
 
-                            <View className="border-t border-gray-800 pt-3 flex-row justify-between items-center">
-                                <View className="flex-row items-center gap-2">
+                            <View style={styles.cardFooter}>
+                                <View style={styles.footerItem}>
                                     <FontAwesome5 name="wrench" size={14} color={aircraft.checkIn.includes("-") ? "#EF4444" : "#F59E0B"} />
-                                    <Text className={`text-gray-400 text-sm font-medium ${aircraft.checkIn.includes("-") ? "text-red-500" : "text-gray-400"}`}>
-                                        Check in  <Text className= " text-sm text-gray-400">{aircraft.checkIn}</Text>
+                                    <Text style={[styles.footerText, aircraft.checkIn.includes("-") && styles.textRed]}>
+                                        Check in  <Text style={styles.footerTextMuted}>{aircraft.checkIn}</Text>
                                     </Text>
                                 </View>
-                                <View className="flex-row items-center gap-2">
+                                <View style={styles.footerItem}>
                                     <Feather name="map-pin" size={12} color="#94A3B8" />
-                                    <Text className="text-xs text-gray-400">
+                                    <Text style={styles.locationText}>
                                         {aircraft.location}
                                     </Text>
                                 </View>
@@ -149,45 +155,51 @@ export default function MaterielView() {
 
             {/* Training Devices Section */}
             <View>
-                <View className="flex-row items-center gap-2 mb-4">
+                <View style={styles.sectionHeader}>
                     <Feather name="monitor" size={14} color="#94A3B8" />
-                    <Text className="text-gray-400 font-medium">Training Devices</Text>
+                    <Text style={styles.sectionTitle}>Training Devices</Text>
                 </View>
 
-                <View className="gap-3">
+                <View style={styles.listContainer}>
                     {SIM_DATA.map((sim) => (
                         <View
                             key={sim.id}
-                            className="bg-card p-4 rounded-xl border border-gray-800"
+                            style={styles.card}
                         >
-                            <View className="flex-row justify-between items-start mb-4">
+                            <View style={styles.cardHeader}>
                                 <View>
-                                    <Text className="text-lg font-bold text-white">
+                                    <Text style={styles.cardTitle}>
                                         {sim.name}
                                     </Text>
-                                    <Text className="text-xs text-gray-500 mt-1">
+                                    <Text style={styles.cardSubtitleSim}>
                                         {sim.type}
                                     </Text>
                                 </View>
 
                                 <View
-                                    className={`px-3 py-1 rounded-full border ${sim.status === "OPERATIONAL"
-                                            ? "border-green-900/30 bg-green-900/10"
-                                            : "border-yellow-900/30 bg-yellow-900/10"
-                                        }`}
+                                    style={[
+                                        styles.badge,
+                                        sim.status === "OPERATIONAL"
+                                            ? styles.badgeOperational
+                                            : styles.badgeMaintenance
+                                    ]}
                                 >
-                                    <View className="flex-row items-center gap-2">
+                                    <View style={styles.badgeContent}>
                                         <View
-                                            className={`w-1.5 h-1.5 rounded-full ${sim.status === "OPERATIONAL"
-                                                    ? "bg-green-500"
-                                                    : "bg-yellow-500"
-                                                }`}
+                                            style={[
+                                                styles.statusDot,
+                                                sim.status === "OPERATIONAL"
+                                                    ? styles.bgGreen
+                                                    : styles.bgYellow
+                                            ]}
                                         />
                                         <Text
-                                            className={`text-[10px] font-bold ${sim.status === "OPERATIONAL"
-                                                    ? "text-green-500"
-                                                    : "text-yellow-500"
-                                                }`}
+                                            style={[
+                                                styles.badgeText,
+                                                sim.status === "OPERATIONAL"
+                                                    ? styles.textGreen
+                                                    : styles.textYellow
+                                            ]}
                                         >
                                             {sim.status}
                                         </Text>
@@ -196,10 +208,10 @@ export default function MaterielView() {
                             </View>
 
                             {sim.nextSession && (
-                                <View className="border-t border-gray-800 pt-3 flex-row items-center gap-2">
+                                <View style={styles.cardFooterSimple}>
                                     <Feather name="calendar" size={12} color="#94A3B8" />
-                                    <Text className="text-xs text-gray-400">
-                                        Next Session:  <Text className="text-gray-300">{sim.nextSession}</Text>
+                                    <Text style={styles.footerTextSmall}>
+                                        Next Session:  <Text style={styles.footerTextHighlight}>{sim.nextSession}</Text>
                                     </Text>
                                 </View>
                             )}
@@ -210,3 +222,173 @@ export default function MaterielView() {
         </View>
     );
 }
+
+const styles = StyleSheet.create({
+    container: {
+        paddingBottom: 24,
+    },
+    statsRow: {
+        flexDirection: "row",
+        gap: 16,
+        marginBottom: 16,
+    },
+    statsCard: {
+        flex: 1,
+        backgroundColor: "#1E293B",
+        padding: 16,
+        borderRadius: 12,
+    },
+    statsHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        marginBottom: 8,
+    },
+    statsLabel: {
+        color: "#94A3B8",
+        fontSize: 12,
+    },
+    statsValue: {
+        fontSize: 24,
+        fontWeight: "bold",
+        color: "#FFFFFF",
+    },
+    section: {
+        marginBottom: 24,
+    },
+    sectionHeader: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        marginBottom: 16,
+    },
+    sectionTitle: {
+        color: "#94A3B8",
+        fontWeight: "500",
+    },
+    listContainer: {
+        gap: 12,
+    },
+    card: {
+        backgroundColor: "#1E293B",
+        padding: 16,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "#1F2937",
+    },
+    cardHeader: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "flex-start",
+        marginBottom: 16,
+    },
+    cardTitle: {
+        fontSize: 18,
+        fontWeight: "bold",
+        color: "#FFFFFF",
+    },
+    cardSubtitle: {
+        fontSize: 12,
+        color: "#FFFFFF",
+        marginTop: 4,
+    },
+    cardSubtitleSim: {
+        fontSize: 12,
+        color: "#6B7280",
+        marginTop: 4,
+    },
+    badge: {
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderRadius: 9999,
+        borderWidth: 1,
+    },
+    badgeOperational: {
+        borderColor: "rgba(6, 78, 59, 0.3)",
+        backgroundColor: "rgba(6, 78, 59, 0.1)",
+    },
+    badgeMaintenance: {
+        borderColor: "rgba(120, 53, 15, 0.3)",
+        backgroundColor: "rgba(120, 53, 15, 0.1)",
+    },
+    badgeGrounded: {
+        borderColor: "#374151",
+        backgroundColor: "rgba(17, 24, 39, 0.5)",
+    },
+    badgeContent: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+    },
+    statusDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+    },
+    badgeText: {
+        fontSize: 10,
+        fontWeight: "bold",
+    },
+    cardFooter: {
+        borderTopWidth: 1,
+        borderTopColor: "#1F2937",
+        paddingTop: 12,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    cardFooterSimple: {
+        borderTopWidth: 1,
+        borderTopColor: "#1F2937",
+        paddingTop: 12,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+    },
+    footerItem: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+    },
+    footerText: {
+        color: "#94A3B8",
+        fontSize: 14,
+        fontWeight: "500",
+    },
+    footerTextMuted: {
+        fontSize: 14,
+        color: "#94A3B8",
+    },
+    footerTextSmall: {
+        fontSize: 12,
+        color: "#94A3B8",
+    },
+    footerTextHighlight: {
+        color: "#D1D5DB",
+    },
+    locationText: {
+        fontSize: 12,
+        color: "#94A3B8",
+    },
+    textGreen: {
+        color: "#4ADE80",
+    },
+    textYellow: {
+        color: "#F59E0B",
+    },
+    textGray: {
+        color: "#9CA3AF",
+    },
+    textRed: {
+        color: "#EF4444",
+    },
+    bgGreen: {
+        backgroundColor: "#22C55E",
+    },
+    bgYellow: {
+        backgroundColor: "#EAB308",
+    },
+    bgGray: {
+        backgroundColor: "#6B7280",
+    },
+});
