@@ -62,15 +62,17 @@ export default function Home() {
 
         {/* Action Buttons */}
         <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.addPilotButton}>
+          <TouchableOpacity style={styles.addPilotButton}
+           onPress={() => router.push("/add-pilot")}>
+                             
             <Feather name="user-plus" size={24} color="#020617" />
-            <Text style={styles.addPilotText}>Add Pilot</Text>
+            <Text style={styles.addPilotText}>  Add Pilot </Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.accessLogsButton}>
+        {/*   <TouchableOpacity style={styles.accessLogsButton}>
             <MaterialCommunityIcons name="shield-alert" size={24} color="#ffffff" />
             <Text style={styles.accessLogsText}>Access Logs</Text>
-          </TouchableOpacity>
+          </TouchableOpacity>  */}
         </View>
 
         {/* Search Bar */}
