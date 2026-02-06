@@ -4,54 +4,40 @@ import React, { useEffect, useState } from 'react';
 import { FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-// Mock Data
-interface Pilot {
-    $id: string;
-    name: string;
-    lastname: string;
-    email:string ;
-    licenseNumber: string;
-    rank: string;
-    flightHours: number;
-}
+import { getPilots } from '@/lib/api/pilots';
+import { PilotDocument } from '@/lib/types';
+
 
 export default function AddPilot() {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
+    const [currentTeamId, setCurrentTeamId] = useState<string | null>(null);
 
 
 
-    const [pilots, setPilots] = useState<Pilot[]>([]);
+    const [pilots, setPilots] = useState<PilotDocument[]>([]);
 
     useEffect(() => {
-        const fetchPilots = async () => {
-            // REPLACE THIS WITH YOUR LOCAL IP ADDRESS
-            //i use ngrok Forwarding 
-            const API_URL = "https://ivy-rhinencephalous-rosamaria.ngrok-free.dev/api/pilots";
-
+        const fetchData = async () => {
             try {
-                console.log("Fetching pilots from:", API_URL);
-                const response = await fetch(API_URL);
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                const data = await response.json();
-                setPilots(data);
-                setLoading(false);
+                setLoading(true);
+                const response = await getPilots()
+                setPilots(response);
             } catch (error) {
-                console.error("Error fetching pilots:", error);
+                console.error('Error fetching pilots:', error);
+            } finally {
                 setLoading(false);
             }
         };
-
-        fetchPilots();
-    }, []);
-
-
-    const filteredPilots = pilots.filter(pilot =>
-        pilot.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        pilot.lastname?.toLowerCase().includes(searchQuery.toLowerCase())
-    );
+        if (searchQuery.length >= 2) {
+            fetchData();
+        }
+    }, [searchQuery]);
+    const filteredPilots = pilots.filter(pilot => {
+        const matchesSearch = pilot.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            pilot.lastname?.toLowerCase().includes(searchQuery.toLowerCase());
+        return matchesSearch;
+    });
 
 
     return (
@@ -95,7 +81,7 @@ export default function AddPilot() {
                         <View className="flex-1 mr-4">
                             <Text className="text-white font-bold text-base mb-1">{item.name} {item.lastname}</Text>
                             <Text className="text-slate-300 text-xs mb-1">{item.licenseNumber}</Text>
-                             <Text className="text-slate-400 text-xs mb-4">{item.email}</Text> 
+                            <Text className="text-slate-400 text-xs mb-4">{item.email}</Text>
 
                             <View className="flex-row items-center gap-4">
                                 {/* Rank Badge */}

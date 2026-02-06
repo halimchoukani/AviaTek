@@ -1,59 +1,39 @@
+import { getPlanes } from "@/lib/api/planes";
+import { getSimulators } from "@/lib/api/simulators";
+import { EquipmentStatus, Plane, Simulator } from "@/lib/types";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
-import { StyleSheet, Text, View } from "react-native";
+import { useEffect, useState } from "react";
+import { FlatList, Image, StyleSheet, Text, View } from "react-native";
 
-const FLEET_DATA = [
-    {
-        id: "N92834",
-        name: "N92834",
-        type: "Cessna 172S",
-        status: "OPERATIONAL",
-        checkIn: "42 h",
-        location: "Apron A",
-    },
-    {
-        id: "N88219",
-        name: "N88219",
-        type: "Piper PA-28",
-        status: "MAINTENANCE",
-        checkIn: "0h",
-        location: "Hangar 2",
-    },
-    {
-        id: "N77321",
-        name: "N77321",
-        type: "Diamond DA42",
-        status: "OPERATIONAL",
-        checkIn: "85 h",
-        location: "Apron B",
-    },
-    {
-        id: "N11029",
-        name: "N11029",
-        type: "Cessna 152",
-        status: "GROUNDED",
-        checkIn: "-5 h",
-        location: "Hangar 1",
-    },
-];
 
-const SIM_DATA = [
-    {
-        id: "SIM-01",
-        name: "SIM-01",
-        type: "Redbird MCX",
-        status: "OPERATIONAL",
-        nextSession: "14:00",
-    },
-    {
-        id: "SIM-02",
-        name: "SIM-02",
-        type: "Frasca 142",
-        status: "MAINTENANCE",
-        nextSession: null,
-    },
-];
 
 export default function MaterielView() {
+    const [planes, setPlanes] = useState<Plane[]>([]);
+    const [simulators, setSimulators] = useState<Simulator[]>([]);
+
+    useEffect(() => {
+        const fetchPlanes = async () => {
+            try {
+                const result: Plane[] = await getPlanes();
+                setPlanes(result);
+            } catch (error) {
+                console.error("Error fetching planes:", error);
+            }
+        };
+        const fetchSimulators = async () => {
+            try {
+                const result: Simulator[] = await getSimulators();
+                setSimulators(result);
+            } catch (error) {
+                console.error("Error fetching simulators:", error);
+            }
+        };
+        console.log(simulators);
+
+        fetchPlanes();
+        fetchSimulators();
+    }, []);
+
     return (
         <View style={styles.container}>
             {/* Stats Row */}
@@ -63,14 +43,14 @@ export default function MaterielView() {
                         <Text style={styles.statsLabel}>Fleet Size</Text>
                         <FontAwesome5 name="plane" size={16} color="#94A3B8" />
                     </View>
-                    <Text style={styles.statsValue}>4</Text>
+                    <Text style={styles.statsValue}>{planes.length}</Text>
                 </View>
                 <View style={styles.statsCard}>
                     <View style={styles.statsHeader}>
-                        <Text style={styles.statsLabel}>Operational</Text>
-                        <Feather name="activity" size={16} color="#4ADE80" />
+                        <Text style={styles.statsLabel}>Simulators</Text>
+                        <Feather name="monitor" size={16} color="#4ADE80" />
                     </View>
-                    <Text style={[styles.statsValue, styles.textGreen]}>2</Text>
+                    <Text style={[styles.statsValue, styles.textGreen]}>{simulators.length}</Text>
                 </View>
             </View>
 
@@ -80,29 +60,38 @@ export default function MaterielView() {
                     <FontAwesome5 name="plane" size={14} color="#94A3B8" />
                     <Text style={styles.sectionTitle}>Fleet Status</Text>
                 </View>
-
-                <View style={styles.listContainer}>
-                    {FLEET_DATA.map((aircraft) => (
+                <FlatList
+                    contentContainerStyle={styles.listContainer}
+                    data={planes}
+                    keyExtractor={(item) => item.$id}
+                    renderItem={({ item: aircraft }) => (
                         <View
-                            key={aircraft.id}
+                            key={aircraft.$id}
                             style={styles.card}
                         >
+                            {/* image of the plane  */}
+                            <View>
+                                <Image
+                                    source={{ uri: aircraft.images[0] ?? "" }}
+                                    style={styles.image}
+                                />
+                            </View>
                             <View style={styles.cardHeader}>
                                 <View>
-                                    <Text style={styles.cardTitle}>
-                                        {aircraft.name}
+                                    <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">
+                                        {aircraft.modelNumber}
                                     </Text>
                                     <Text style={styles.cardSubtitle}>
-                                        {aircraft.type}
+                                        {aircraft.manufacturer}
                                     </Text>
                                 </View>
 
                                 <View
                                     style={[
                                         styles.badge,
-                                        aircraft.status === "OPERATIONAL"
+                                        aircraft.status === EquipmentStatus.Operational
                                             ? styles.badgeOperational
-                                            : aircraft.status === "MAINTENANCE"
+                                            : aircraft.status === EquipmentStatus.Maintenance
                                                 ? styles.badgeMaintenance
                                                 : styles.badgeGrounded
                                     ]}
@@ -111,9 +100,9 @@ export default function MaterielView() {
                                         <View
                                             style={[
                                                 styles.statusDot,
-                                                aircraft.status === "OPERATIONAL"
+                                                aircraft.status === EquipmentStatus.Operational
                                                     ? styles.bgGreen
-                                                    : aircraft.status === "MAINTENANCE"
+                                                    : aircraft.status === EquipmentStatus.Maintenance
                                                         ? styles.bgYellow
                                                         : styles.bgGray
                                             ]}
@@ -121,9 +110,9 @@ export default function MaterielView() {
                                         <Text
                                             style={[
                                                 styles.badgeText,
-                                                aircraft.status === "OPERATIONAL"
+                                                aircraft.status === EquipmentStatus.Operational
                                                     ? styles.textGreen
-                                                    : aircraft.status === "MAINTENANCE"
+                                                    : aircraft.status === EquipmentStatus.Maintenance
                                                         ? styles.textYellow
                                                         : styles.textGray
                                             ]}
@@ -136,9 +125,9 @@ export default function MaterielView() {
 
                             <View style={styles.cardFooter}>
                                 <View style={styles.footerItem}>
-                                    <FontAwesome5 name="wrench" size={14} color={aircraft.checkIn.includes("-") ? "#EF4444" : "#F59E0B"} />
-                                    <Text style={[styles.footerText, aircraft.checkIn.includes("-") && styles.textRed]}>
-                                        Check in  <Text style={styles.footerTextMuted}>{aircraft.checkIn}</Text>
+                                    <FontAwesome5 name="wrench" size={14} color="#F59E0B" />
+                                    <Text style={styles.footerText}>
+                                        Last Check <Text style={styles.footerTextMuted}>{new Date(aircraft.lastCheckDate).toLocaleDateString()}</Text>
                                     </Text>
                                 </View>
                                 <View style={styles.footerItem}>
@@ -149,81 +138,97 @@ export default function MaterielView() {
                                 </View>
                             </View>
                         </View>
-                    ))}
-                </View>
+                    )}
+                    showsVerticalScrollIndicator={false}
+                />
+
+            </View>
+            <View style={styles.sectionHeader}>
+                <Feather name="monitor" size={14} color="#94A3B8" />
+                <Text style={styles.sectionTitle}>Training Devices</Text>
             </View>
 
-            {/* Training Devices Section */}
-            <View>
-                <View style={styles.sectionHeader}>
-                    <Feather name="monitor" size={14} color="#94A3B8" />
-                    <Text style={styles.sectionTitle}>Training Devices</Text>
-                </View>
-
-                <View style={styles.listContainer}>
-                    {SIM_DATA.map((sim) => (
-                        <View
-                            key={sim.id}
-                            style={styles.card}
-                        >
-                            <View style={styles.cardHeader}>
-                                <View>
-                                    <Text style={styles.cardTitle}>
-                                        {sim.name}
-                                    </Text>
-                                    <Text style={styles.cardSubtitleSim}>
-                                        {sim.type}
-                                    </Text>
-                                </View>
-
-                                <View
-                                    style={[
-                                        styles.badge,
-                                        sim.status === "OPERATIONAL"
-                                            ? styles.badgeOperational
-                                            : styles.badgeMaintenance
-                                    ]}
-                                >
-                                    <View style={styles.badgeContent}>
-                                        <View
-                                            style={[
-                                                styles.statusDot,
-                                                sim.status === "OPERATIONAL"
-                                                    ? styles.bgGreen
-                                                    : styles.bgYellow
-                                            ]}
-                                        />
-                                        <Text
-                                            style={[
-                                                styles.badgeText,
-                                                sim.status === "OPERATIONAL"
-                                                    ? styles.textGreen
-                                                    : styles.textYellow
-                                            ]}
-                                        >
-                                            {sim.status}
-                                        </Text>
-                                    </View>
-                                </View>
+            <FlatList
+                contentContainerStyle={styles.listContainer}
+                data={simulators}
+                keyExtractor={(item) => item.$id}
+                renderItem={({ item: sim }) => (
+                    <View
+                        key={sim.$id}
+                        style={styles.card}
+                    >
+                        {/* image of the simulator  */}
+                        <View>
+                            <Image
+                                source={{ uri: sim.images[0] ?? "" }}
+                                style={styles.image}
+                            />
+                        </View>
+                        <View style={styles.cardHeader}>
+                            <View>
+                                <Text style={styles.cardTitle} numberOfLines={1} ellipsizeMode="tail">
+                                    {sim.simulatorModel}
+                                </Text>
+                                <Text style={styles.cardSubtitleSim}>
+                                    {sim.location}
+                                </Text>
                             </View>
 
-                            {sim.nextSession && (
-                                <View style={styles.cardFooterSimple}>
-                                    <Feather name="calendar" size={12} color="#94A3B8" />
-                                    <Text style={styles.footerTextSmall}>
-                                        Next Session:  <Text style={styles.footerTextHighlight}>{sim.nextSession}</Text>
+                            <View
+                                style={[
+                                    styles.badge,
+                                    sim.status === EquipmentStatus.Operational
+                                        ? styles.badgeOperational
+                                        : styles.badgeMaintenance
+                                ]}
+                            >
+                                <View style={styles.badgeContent}>
+                                    <View
+                                        style={[
+                                            styles.statusDot,
+                                            sim.status === EquipmentStatus.Operational
+                                                ? styles.bgGreen
+                                                : styles.bgYellow
+                                        ]}
+                                    />
+                                    <Text
+                                        style={[
+                                            styles.badgeText,
+                                            sim.status === EquipmentStatus.Operational
+                                                ? styles.textGreen
+                                                : styles.textYellow
+                                        ]}
+                                    >
+                                        {sim.status}
                                     </Text>
                                 </View>
-                            )}
+                            </View>
                         </View>
-                    ))}
-                </View>
-            </View>
+
+                        {sim.lastMaintenanceDate && (
+                            <View style={styles.cardFooterSimple}>
+                                <Feather name="calendar" size={12} color="#94A3B8" />
+                                <Text style={styles.footerTextSmall}>
+                                    Last Maintenance:  <Text style={styles.footerTextHighlight}>{new Date(sim.lastMaintenanceDate).toLocaleDateString()}</Text>
+                                </Text>
+                            </View>
+                        )}
+                    </View>
+                )}
+                showsVerticalScrollIndicator={false}
+            />
+
         </View>
     );
 }
 
 const styles = StyleSheet.create({
+    image: {
+        width: "100%",
+        height: 100,
+        borderRadius: 12,
+        marginBottom: 16,
+    },
     container: {
         paddingBottom: 24,
     },
@@ -283,8 +288,10 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     cardTitle: {
+        width: 100,
         fontSize: 18,
         fontWeight: "bold",
+        overflow: "hidden",
         color: "#FFFFFF",
     },
     cardSubtitle: {

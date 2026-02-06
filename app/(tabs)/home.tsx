@@ -1,14 +1,14 @@
 import PilotCard from "@/components/PilotCard";
 import StatsCard from "@/components/StatsCard";
-import { PILOTS } from "@/constant/Pilots";
+import { getPilotsByAcademy } from "@/lib/api/pilots";
+import { PilotDocument } from "@/lib/types";
 
 import {
   Feather,
-  FontAwesome5,
-  MaterialCommunityIcons
+  FontAwesome5
 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   FlatList,
   StatusBar,
@@ -21,10 +21,34 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 
-
 export default function Home() {
   const router = useRouter();
-
+  const [pilots, setPilots] = React.useState<PilotDocument[]>([]);
+  const [searchQuery, setSearchQuery] = React.useState("");
+  const [filteredPilots, setFilteredPilots] = React.useState<PilotDocument[]>([]);
+  useEffect(() => {
+    const fetchPilots = async () => {
+      try {
+        const fetchedPilots = await getPilotsByAcademy();
+        setPilots(fetchedPilots);
+        setFilteredPilots(fetchedPilots);
+      } catch (error) {
+        console.error('Error fetching pilots:', error);
+      }
+    };
+    fetchPilots();
+  }, []);
+  useEffect(() => {
+    if (searchQuery.length > 0) {
+      const filteredPilots = pilots.filter((pilot) =>
+        pilot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        pilot.licenseNumber.toLowerCase().includes(searchQuery.toLowerCase())
+      );
+      setFilteredPilots(filteredPilots);
+    } else {
+      setFilteredPilots(pilots);
+    }
+  }, [searchQuery, pilots]);
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" />
@@ -55,24 +79,20 @@ export default function Home() {
 
         {/* Stats Row */}
         <View style={styles.statsRow}>
-          <StatsCard label="Total" value="142" />
-          <StatsCard label="Active" value="118" valueColor="text-secondary" />
-          <StatsCard label="Pending" value="24" />
+          <StatsCard label="Total" value={pilots.length.toString()} />
+          <StatsCard label="Active" value={pilots.filter(pilot => pilot.activeStatus === 'active').length.toString()} valueColor="text-secondary" />
+          <StatsCard label="Pending" value={pilots.filter(pilot => pilot.activeStatus === 'inactive').length.toString()} />
         </View>
 
         {/* Action Buttons */}
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.addPilotButton}
-           onPress={() => router.push("/add-pilot")}>
-                             
+            onPress={() => router.push("/add-pilot")}>
+
             <Feather name="user-plus" size={24} color="#020617" />
             <Text style={styles.addPilotText}>  Add Pilot </Text>
           </TouchableOpacity>
 
-        {/*   <TouchableOpacity style={styles.accessLogsButton}>
-            <MaterialCommunityIcons name="shield-alert" size={24} color="#ffffff" />
-            <Text style={styles.accessLogsText}>Access Logs</Text>
-          </TouchableOpacity>  */}
         </View>
 
         {/* Search Bar */}
@@ -80,6 +100,8 @@ export default function Home() {
           <TextInput
             placeholder="Search by name or license ID..."
             placeholderTextColor="#64748B"
+            value={searchQuery}
+            onChangeText={setSearchQuery}
             style={styles.searchInput}
           />
         </View>
@@ -91,8 +113,8 @@ export default function Home() {
 
         {/* List */}
         <FlatList
-          data={PILOTS}
-          keyExtractor={(item) => item.id}
+          data={filteredPilots}
+          keyExtractor={(item) => item.$id}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => <PilotCard pilot={item} />}
           showsVerticalScrollIndicator={false}

@@ -1,23 +1,25 @@
-import { PILOTS } from "@/constant/Pilots";
+import { PilotDocument } from "@/lib/types";
 import { Feather } from "@expo/vector-icons";
 import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
 
 // Helper to map Tailwind status colors to hex values
 const STATUS_COLORS: Record<string, string> = {
-    'text-amber-400': '#fbbf24',
-    'text-red-500': '#ef4444',
-    'text-slate-400': '#94a3b8',
+    'online': '#5cbe00ff',
+    'offline': '#ef4444',
+    'on_leave': '#94a3b8',
+    'on_duty': '#fbbf24',
+    'inactive': '#94a3b8',
 };
 
-export default function PilotCard({ pilot }: { pilot: typeof PILOTS[0] }) {
-    const statusColor = STATUS_COLORS[pilot.statusColor] || '#94a3b8';
+export default function PilotCard({ pilot }: { pilot: PilotDocument }) {
+    const statusColor = STATUS_COLORS[pilot.status] || '#94a3b8';
 
     return (
         <View style={styles.container}>
             <View style={styles.header}>
                 <View>
                     <Text style={styles.name}>{pilot.name}</Text>
-                    <Text style={styles.license}>{pilot.license}</Text>
+                    <Text style={styles.license}>{pilot.licenseNumber}</Text>
                 </View>
 
                 <View style={styles.statusBadge}>
@@ -28,7 +30,7 @@ export default function PilotCard({ pilot }: { pilot: typeof PILOTS[0] }) {
 
             <View style={styles.footer}>
                 <Text style={styles.joinedLabel}>
-                    Joined  <Text style={styles.joinedDate}>{pilot.joined}</Text>
+                    Joined  <Text style={styles.joinedDate}>{new Date(pilot.$createdAt).toLocaleDateString()}</Text>
                 </Text>
 
                 <View style={styles.actions}>
