@@ -11,7 +11,6 @@ export enum PilotActivityStatus {
     Active = 'active',
     OnLeave = 'on_leave',
     On_Duty = 'on_duty',
-    Inactive = 'inactive',
 }
 
 export interface Pilot {

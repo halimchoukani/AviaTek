@@ -8,40 +8,10 @@ import PilotCard from "./PilotCard";
 const STAFF_DATA = [
     {
         id: 1,
-        name: "Capt. Sarah Chen",
-        role: "ATPL-9921",
-        tags: ["CFI", "MEI"],
-        status: "ON DUTY",
-        hours: "4,250",
-        location: "C172-N9283",
-    },
-    {
-        id: 2,
-        name: "FO. Marcus Rodriguez",
-        role: "CPL-4421",
-        tags: ["CFI"],
-        status: "AVAILABLE",
-        hours: "1,850",
-        location: null,
-    },
-    {
-        id: 3,
-        name: "Capt. James Wilson",
-        role: "ATPL-1102",
-        tags: ["CFII", "MEI"],
-        status: "OFF DUTY",
-        hours: "5,100",
-        location: null,
-    },
-    {
-        id: 4,
-        name: "FO. Elena Popov",
-        role: "CPL-3391",
-        tags: ["IR"],
-        status: "ON DUTY",
-        hours: "950",
-        location: "Sim-01",
-    },
+        name: "Admin 1",
+        email: "admin1@avia.com",
+        status: "Online",
+    }
 ];
 
 export default function PersonnelView() {
@@ -88,7 +58,7 @@ export default function PersonnelView() {
             </View>
 
             {/* Admin Section */}
-            {/* <View style={styles.section}>
+            <View style={styles.section}>
                 <View style={styles.sectionHeader}>
                     <FontAwesome5 name="user-tie" size={14} color="#94A3B8" />
                     <Text style={styles.sectionTitle}>Admins</Text>
@@ -104,63 +74,38 @@ export default function PersonnelView() {
                                         {staff.name}
                                     </Text>
                                     <Text style={styles.cardSubtitle}>
-                                        {staff.role}
+                                        {staff.email}
                                     </Text>
                                 </View>
                                 <View style={[
                                     styles.badge,
-                                    staff.status === "AVAILABLE" ? styles.badgeAvailable : styles.badgeDefault
+                                    staff.status === "Online" ? styles.badgeAvailable : styles.badgeDefault
                                 ]}>
                                     <View style={styles.badgeContent}>
                                         <View style={[
                                             styles.statusDot,
-                                            staff.status === "ON DUTY"
+                                            staff.status === "Online"
                                                 ? styles.bgSecondary
-                                                : staff.status === "AVAILABLE"
+                                                : staff.status === "Offline"
                                                     ? styles.bgGreen
                                                     : styles.bgGray
                                         ]} />
                                         <Text style={[
                                             styles.badgeText,
-                                            staff.status === "AVAILABLE" ? styles.textGreen :
-                                                staff.status === "ON DUTY" ? styles.textSecondary : styles.textGray
+                                            staff.status === "Online" ? styles.textGreen :
+                                                staff.status === "Offline" ? styles.textSecondary : styles.textGray
                                         ]}>
                                             {staff.status}
                                         </Text>
                                     </View>
                                 </View>
                             </View>
-                            <View style={styles.tagsContainer}>
-                                {staff.tags.map((tag, index) => (
-                                    <View key={index} style={styles.tag}>
-                                        <Text style={styles.tagText}>
-                                            {tag}
-                                        </Text>
-                                    </View>
-                                ))}
-                            </View>
-                            <View style={styles.cardFooter}>
-                                <View style={styles.footerItem}>
-                                    <Feather name="clock" size={14} color="#94A3B8" />
-                                    <Text style={styles.footerText}>
-                                        {staff.hours} hrs
-                                    </Text>
-                                </View>
-                                {staff.location && (
-                                    <View style={styles.footerItem}>
-                                        <Feather name="map-pin" size={14} color="#C9A961" />
-                                        <Text style={[styles.footerText, styles.textSecondary]}>
-                                            {staff.location}
-                                        </Text>
-                                    </View>
-                                )}
-                            </View>
                         </View>
                     )}
                     showsVerticalScrollIndicator={false}
                 />
 
-            </View> */}
+            </View>
 
             {/* Pilots Section */}
             <View style={styles.sectionHeader}>
