@@ -18,3 +18,17 @@ export const getPlanes = async (): Promise<Plane[]> => {
         throw error;
     }
 };
+export const createPlane = async (plane: Omit<Plane, "$id">): Promise<Plane> => {
+    try {
+        const result = await databases.createDocument(
+            appwriteConfig.databaseId,
+            "equipment",
+            "unique()",
+            plane
+        );
+        return result as unknown as Plane;
+    } catch (error) {
+        console.error("Error creating plane:", error);
+        throw error;
+    }
+};

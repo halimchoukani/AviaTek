@@ -1,38 +1,34 @@
+import { Feather, FontAwesome5 } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useState } from "react";
+import { FlatList, Image, StyleSheet, Text, View } from "react-native";
+
 import { getPlanes } from "@/lib/api/planes";
 import { getSimulators } from "@/lib/api/simulators";
 import { EquipmentStatus, Plane, Simulator } from "@/lib/types";
-import { Feather, FontAwesome5 } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
-import { FlatList, Image, StyleSheet, Text, View } from "react-native";
-
-
 
 export default function MaterielView() {
     const [planes, setPlanes] = useState<Plane[]>([]);
     const [simulators, setSimulators] = useState<Simulator[]>([]);
 
-    useEffect(() => {
-        const fetchPlanes = async () => {
-            try {
-                const result: Plane[] = await getPlanes();
-                setPlanes(result);
-            } catch (error) {
-                console.error("Error fetching planes:", error);
-            }
-        };
-        const fetchSimulators = async () => {
-            try {
-                const result: Simulator[] = await getSimulators();
-                setSimulators(result);
-            } catch (error) {
-                console.error("Error fetching simulators:", error);
-            }
-        };
-        console.log(simulators);
-
-        fetchPlanes();
-        fetchSimulators();
+    const fetchData = useCallback(async () => {
+        try {
+            const [planesResult, simulatorsResult] = await Promise.all([
+                getPlanes(),
+                getSimulators()
+            ]);
+            setPlanes(planesResult);
+            setSimulators(simulatorsResult);
+        } catch (error) {
+            console.error("Error fetching data:", error);
+        }
     }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchData();
+        }, [fetchData])
+    );
 
     return (
         <View style={styles.container}>

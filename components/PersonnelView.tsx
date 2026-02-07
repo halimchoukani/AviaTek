@@ -1,8 +1,10 @@
+import { Feather, FontAwesome5 } from "@expo/vector-icons";
+import { useFocusEffect } from "@react-navigation/native";
+import React, { useCallback, useState } from "react";
+import { FlatList, StyleSheet, Text, View } from "react-native";
+
 import { getPilotsByAcademy } from "@/lib/api/pilots";
 import { PilotDocument } from "@/lib/types";
-import { Feather, FontAwesome5 } from "@expo/vector-icons";
-import { useEffect, useState } from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
 import PilotCard from "./PilotCard";
 
 const STAFF_DATA = [
@@ -17,25 +19,20 @@ const STAFF_DATA = [
 export default function PersonnelView() {
     const [pilots, setPilots] = useState<PilotDocument[]>([]);
 
-    useEffect(() => {
-        // const fetchTeamMembers = async () => {
-        //     try {
-        //         const fetchedTeamMembers = await getTeamMembers();
-        //     } catch (error) {
-        //         console.error('Error fetching team members:', error);
-        //     }
-        // };
-        // fetchTeamMembers();
-        const fetchPilots = async () => {
-            try {
-                const fetchedPilots = await getPilotsByAcademy();
-                setPilots(fetchedPilots);
-            } catch (error) {
-                console.error('Error fetching pilots:', error);
-            }
-        };
-        fetchPilots();
+    const fetchData = useCallback(async () => {
+        try {
+            const fetchedPilots = await getPilotsByAcademy();
+            setPilots(fetchedPilots);
+        } catch (error) {
+            console.error('Error fetching pilots:', error);
+        }
     }, []);
+
+    useFocusEffect(
+        useCallback(() => {
+            fetchData();
+        }, [fetchData])
+    );
 
     return (
         <View style={styles.container}>

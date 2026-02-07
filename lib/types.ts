@@ -53,7 +53,7 @@ export interface Simulator {
 //Aircraft
 export interface Plane {
     $id: string;
-    model: string;
+    name:string;
     modelNumber:string;
     manufacturer:string;
     purchaseDate:string;

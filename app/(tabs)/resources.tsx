@@ -1,3 +1,5 @@
+import { Feather } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -53,12 +55,34 @@ export default function Resources() {
       <View style={styles.safeContent}>
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>
-            Resource Management
-          </Text>
-          <Text style={styles.headerSubtitle}>
-            Academy Operations
-          </Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View>
+              <Text style={styles.headerTitle}>
+                Resource Management
+              </Text>
+              <Text style={styles.headerSubtitle}>
+                Academy Operations
+              </Text>
+            </View>
+            <TouchableOpacity
+              onPress={() => router.push(activeTab === "personnel" ? "/add-pilot" : "/add-equipment")}
+              style={{
+                backgroundColor: '#C9A961',
+                width: 40,
+                height: 40,
+                borderRadius: 20,
+                justifyContent: 'center',
+                alignItems: 'center',
+                shadowColor: '#C9A961',
+                shadowOffset: { width: 0, height: 4 },
+                shadowOpacity: 0.3,
+                shadowRadius: 8,
+                elevation: 5
+              }}
+            >
+              <Feather name="plus" size={24} color="#020617" />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Tabs */}
