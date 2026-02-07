@@ -26,6 +26,7 @@ export interface Pilot {
     isActive:boolean;
     status:PilotStatus;
     activeStatus:PilotActivityStatus;
+    academy:string
 }
 
 export interface PilotDocument extends Pilot, Models.Document {}

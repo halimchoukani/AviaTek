@@ -1,6 +1,7 @@
 import PilotCard from "@/components/PilotCard";
 import StatsCard from "@/components/StatsCard";
 import { getPilotsByAcademy } from "@/lib/api/pilots";
+import client, { appwriteConfig } from "@/lib/appwrite";
 import { PilotDocument } from "@/lib/types";
 
 import {
@@ -8,7 +9,7 @@ import {
   FontAwesome5
 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   StatusBar,
@@ -23,19 +24,27 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function Home() {
   const router = useRouter();
-  const [pilots, setPilots] = React.useState<PilotDocument[]>([]);
+
+  const [pilots, setPilots] = useState<PilotDocument[]>([]);
+
   const [searchQuery, setSearchQuery] = React.useState("");
   const [filteredPilots, setFilteredPilots] = React.useState<PilotDocument[]>([]);
+  const fetchPilots = async () => {
+    try {
+      const fetchedPilots = await getPilotsByAcademy();
+      setPilots(fetchedPilots);
+      setFilteredPilots(fetchedPilots);
+    } catch (error) {
+      console.error('Error fetching pilots:', error);
+    }
+  };
   useEffect(() => {
-    const fetchPilots = async () => {
-      try {
-        const fetchedPilots = await getPilotsByAcademy();
-        setPilots(fetchedPilots);
-        setFilteredPilots(fetchedPilots);
-      } catch (error) {
-        console.error('Error fetching pilots:', error);
-      }
-    };
+    const unsubscribe = client.subscribe(`databases.${appwriteConfig.databaseId}.collections.${appwriteConfig.pilotCollectionId}.documents`, (response) => {
+      fetchPilots();
+    })
+    return () => unsubscribe();
+  }, [])
+  useEffect(() => {
     fetchPilots();
   }, []);
   useEffect(() => {

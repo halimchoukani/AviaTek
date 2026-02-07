@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { FlatList, Text, TextInput, TouchableOpacity, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { getPilots } from '@/lib/api/pilots';
+import { assignPilotToAcademy, getPilotsNotAssignedToAcademy } from '@/lib/api/pilots';
 import { PilotDocument } from '@/lib/types';
 
 
@@ -12,7 +12,14 @@ export default function AddPilot() {
     const [searchQuery, setSearchQuery] = useState('');
     const [loading, setLoading] = useState(true);
     const [currentTeamId, setCurrentTeamId] = useState<string | null>(null);
-
+    const handleAddPilotToAcademy = async (pilotId: string) => {
+        try {
+            const result = await assignPilotToAcademy(pilotId);
+            router.back();
+        } catch (error) {
+            console.error('Error adding pilot to academy:', error);
+        }
+    }
 
 
     const [pilots, setPilots] = useState<PilotDocument[]>([]);
@@ -21,7 +28,7 @@ export default function AddPilot() {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                const response = await getPilots()
+                const response = await getPilotsNotAssignedToAcademy()
                 setPilots(response);
             } catch (error) {
                 console.error('Error fetching pilots:', error);
@@ -99,7 +106,7 @@ export default function AddPilot() {
                         </View>
 
                         {/* Right Action */}
-                        <TouchableOpacity className="bg-secondary px-4 py-2 rounded-lg flex-row items-center">
+                        <TouchableOpacity onPress={() => handleAddPilotToAcademy(item.$id)} className="bg-secondary px-4 py-2 rounded-lg flex-row items-center">
                             <Feather name="user-plus" size={16} color="#020617" />
                             <Text className="text-primary font-bold text-xs ml-2">Add</Text>
                         </TouchableOpacity>

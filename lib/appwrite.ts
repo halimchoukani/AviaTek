@@ -1,4 +1,4 @@
-import { Account, Avatars, Client, Databases, ID, Query } from "appwrite";
+import { Account, Avatars, Client, Databases, ID, Query, Teams } from "appwrite";
 
 export const appwriteConfig = {
     platform: process.env.EXPO_PUBLIC_APPWRITE_PLATFORM ?? "com.jsm.aviatek",
@@ -15,6 +15,7 @@ const client = new Client()
 
 export const databases = new Databases(client);
 export const account = new Account(client);
+export const teams = new Teams(client);
 export const avatars = new Avatars(client);
 
 export default client;

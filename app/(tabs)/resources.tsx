@@ -1,8 +1,8 @@
-import { Feather } from "@expo/vector-icons";
 import { useState } from "react";
 import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import PersonnelView from "@/components/PersonnelView";
 import MaterielView from "../../components/MaterielView";
 
 const STAFF_DATA = [
@@ -99,95 +99,7 @@ export default function Resources() {
 
         <ScrollView showsVerticalScrollIndicator={false}>
           {activeTab === "personnel" ? (
-            <>
-              {/* Stats Row */}
-              <View style={styles.statsRow}>
-                <View style={styles.statsCard}>
-                  <View style={styles.statsHeader}>
-                    <Text style={styles.statsLabel}>Total Pilots</Text>
-                    <Feather name="users" size={16} color="#94A3B8" />
-                  </View>
-                  <Text style={styles.statsValue}>4</Text>
-                </View>
-                <View style={styles.statsCard}>
-                  <View style={styles.statsHeader}>
-                    <Text style={styles.statsLabel}>On Duty</Text>
-                    <Feather name="activity" size={16} color="#C9A961" />
-                  </View>
-                  <Text style={[styles.statsValue, styles.textSecondary]}>2</Text>
-                </View>
-              </View>
-
-              {/* Personnel List */}
-              <View style={styles.listContainer}>
-                {STAFF_DATA.map((staff) => (
-                  <View key={staff.id} style={styles.card}>
-                    {/* Header */}
-                    <View style={styles.cardHeader}>
-                      <View>
-                        <Text style={styles.cardTitle}>
-                          {staff.name}
-                        </Text>
-                        <Text style={styles.cardSubtitle}>
-                          {staff.role}
-                        </Text>
-                      </View>
-                      <View style={[
-                        styles.badge,
-                        staff.status === "AVAILABLE" ? styles.badgeAvailable : styles.badgeDefault
-                      ]}>
-                        <View style={styles.badgeContent}>
-                          <View style={[
-                            styles.statusDot,
-                            staff.status === "ON DUTY"
-                              ? styles.bgSecondary
-                              : staff.status === "AVAILABLE"
-                                ? styles.bgGreen
-                                : styles.bgGray
-                          ]} />
-                          <Text style={[
-                            styles.badgeText,
-                            staff.status === "AVAILABLE" ? styles.textGreen :
-                              staff.status === "ON DUTY" ? styles.textSecondary : styles.textGray
-                          ]}>
-                            {staff.status}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-
-                    {/* Tags */}
-                    <View style={styles.tagsContainer}>
-                      {staff.tags.map((tag, index) => (
-                        <View key={index} style={styles.tag}>
-                          <Text style={styles.tagText}>
-                            {tag}
-                          </Text>
-                        </View>
-                      ))}
-                    </View>
-
-                    {/* Footer */}
-                    <View style={styles.cardFooter}>
-                      <View style={styles.footerItem}>
-                        <Feather name="clock" size={14} color="#94A3B8" />
-                        <Text style={styles.footerText}>
-                          {staff.hours} hrs
-                        </Text>
-                      </View>
-                      {staff.location && (
-                        <View style={styles.footerItem}>
-                          <Feather name="map-pin" size={14} color="#C9A961" />
-                          <Text style={[styles.footerText, styles.textSecondary]}>
-                            {staff.location}
-                          </Text>
-                        </View>
-                      )}
-                    </View>
-                  </View>
-                ))}
-              </View>
-            </>
+            <PersonnelView />
           ) : (
             <MaterielView />
           )}
