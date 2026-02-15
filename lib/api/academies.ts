@@ -89,4 +89,37 @@ export async function getAcademyById(id: string) {
         throw error;
     }
 }
+export const getAcademyAdmins = async () => {
+    try {
+        const currentAccount = await account.get();
+
+        const teamId = currentAccount.prefs.academyId;
+
+        if (!teamId) {
+            throw new Error("User has no academyId in prefs");
+        }
+
+        const result = await teams.listMemberships(teamId);
+
+        const adminMembers = result.memberships.filter(
+            (membership) =>
+                membership.roles.includes("admin") ||
+                membership.roles.includes("owner")
+        );
+
+        const admins = adminMembers.map(m => ({
+            userId: m.userId,
+            userEmail: m.userEmail,
+            roles: m.roles,
+            userName: m.userName,
+        }));
+        console.log(admins);
+        return admins;
+
+    } catch (error) {
+        console.error("Error fetching admins:", error);
+        throw error;
+    }
+};
+
 

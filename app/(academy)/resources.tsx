@@ -1,50 +1,11 @@
 import { Feather } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { useState } from "react";
-import { ScrollView, StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { StatusBar, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import PersonnelView from "@/components/PersonnelView";
 import MaterielView from "../../components/MaterielView";
-
-const STAFF_DATA = [
-  {
-    id: 1,
-    name: "Capt. Sarah Chen",
-    role: "ATPL-9921",
-    tags: ["CFI", "MEI"],
-    status: "ON DUTY",
-    hours: "4,250",
-    location: "C172-N9283",
-  },
-  {
-    id: 2,
-    name: "FO. Marcus Rodriguez",
-    role: "CPL-4421",
-    tags: ["CFI"],
-    status: "AVAILABLE",
-    hours: "1,850",
-    location: null,
-  },
-  {
-    id: 3,
-    name: "Capt. James Wilson",
-    role: "ATPL-1102",
-    tags: ["CFII", "MEI"],
-    status: "OFF DUTY",
-    hours: "5,100",
-    location: null,
-  },
-  {
-    id: 4,
-    name: "FO. Elena Popov",
-    role: "CPL-3391",
-    tags: ["IR"],
-    status: "ON DUTY",
-    hours: "950",
-    location: "Sim-01",
-  },
-];
 
 export default function Resources() {
   const [activeTab, setActiveTab] = useState<"personnel" | "materiel">("personnel");
@@ -121,13 +82,12 @@ export default function Resources() {
           </TouchableOpacity>
         </View>
 
-        <ScrollView showsVerticalScrollIndicator={false}>
-          {activeTab === "personnel" ? (
-            <PersonnelView />
-          ) : (
-            <MaterielView />
-          )}
-        </ScrollView>
+
+        {activeTab === "personnel" ? (
+          <PersonnelView />
+        ) : (
+          <MaterielView />
+        )}
       </View>
     </SafeAreaView>
   );

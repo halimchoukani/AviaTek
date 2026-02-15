@@ -9,14 +9,24 @@ export const getPilotsByAcademy = async () => {
         const currentAccount = await account.get();
         const result = await teams.listMemberships(currentAccount.prefs.academyId);
 
-        const pilots = result.memberships.filter((membership) => membership.role === "pilot");
-
+        const pilotsMembers = result.memberships.filter((membership) => membership.roles.includes("pilot"));
+        const pilots = await Promise.all(
+            pilotsMembers.map(async (membership) => {
+                const pilot = await databases.getDocument<PilotDocument>(
+                    appwriteConfig.databaseId,
+                    appwriteConfig.pilotCollectionId,
+                    membership.userId
+                );
+                return pilot;
+            })
+        );
         return pilots;
     } catch (error) {
         console.error('Error fetching pilots:', error);
         throw error;
     }
 };
+
 export const getPilotsNotAssignedToAcademy = async () => {
     try {
         const result = await databases.listDocuments<PilotDocument>(

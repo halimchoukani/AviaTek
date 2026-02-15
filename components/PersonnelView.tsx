@@ -1,38 +1,25 @@
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
-import { useFocusEffect } from "@react-navigation/native";
-import React, { useCallback, useState } from "react";
-import { FlatList, StyleSheet, Text, View } from "react-native";
+import React from "react";
+import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
 
+import { getAcademyAdmins } from "@/lib/api/academies";
 import { getPilotsByAcademy } from "@/lib/api/pilots";
-import { PilotDocument } from "@/lib/types";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import PilotCard from "./PilotCard";
-
-const STAFF_DATA = [
-    {
-        id: 1,
-        name: "Admin 1",
-        email: "admin1@avia.com",
-        status: "Online",
-    }
-];
+;
 
 export default function PersonnelView() {
-    const [pilots, setPilots] = useState<PilotDocument[]>([]);
-
-    const fetchData = useCallback(async () => {
-        try {
-            const fetchedPilots = await getPilotsByAcademy();
-            setPilots(fetchedPilots);
-        } catch (error) {
-            console.error('Error fetching pilots:', error);
-        }
-    }, []);
-
-    useFocusEffect(
-        useCallback(() => {
-            fetchData();
-        }, [fetchData])
-    );
+    const { data: pilots, isFetching: isPilotsFetching } = useSuspenseQuery({
+        queryKey: ["pilots"],
+        queryFn: getPilotsByAcademy,
+    })
+    const { data: admins, isFetching: isAdminsFetching } = useSuspenseQuery({
+        queryKey: ["admins"],
+        queryFn: getAcademyAdmins,
+    })
+    if (isPilotsFetching || isAdminsFetching) {
+        return <ActivityIndicator size={"large"} color={"#C9A961"} />
+    }
 
     return (
         <View style={styles.container}>
@@ -62,26 +49,26 @@ export default function PersonnelView() {
                 </View>
                 <FlatList
                     contentContainerStyle={styles.listContainer}
-                    data={STAFF_DATA}
+                    data={admins}
                     renderItem={({ item: staff }) => (
-                        <View key={staff.id} style={styles.card}>
+                        <View key={staff.userId} style={styles.card}>
                             <View style={styles.cardHeader}>
                                 <View>
                                     <Text style={styles.cardTitle}>
-                                        {staff.name}
+                                        {staff.userName}
                                     </Text>
                                     <Text style={styles.cardSubtitle}>
-                                        {staff.email}
+                                        {staff.userEmail}
                                     </Text>
                                 </View>
-                                <View style={[
+                                {/* <View style={[
                                     styles.badge,
-                                    staff.status === "Online" ? styles.badgeAvailable : styles.badgeDefault
+                                    staff.userStatus === "Online" ? styles.badgeAvailable : styles.badgeDefault
                                 ]}>
                                     <View style={styles.badgeContent}>
                                         <View style={[
                                             styles.statusDot,
-                                            staff.status === "Online"
+                                            staff.userStatus === "Online"
                                                 ? styles.bgSecondary
                                                 : staff.status === "Offline"
                                                     ? styles.bgGreen
@@ -95,7 +82,7 @@ export default function PersonnelView() {
                                             {staff.status}
                                         </Text>
                                     </View>
-                                </View>
+                                </View> */}
                             </View>
                         </View>
                     )}
