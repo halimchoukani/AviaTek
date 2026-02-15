@@ -1,4 +1,4 @@
-import { Query } from "appwrite";
+import { Query } from "react-native-appwrite";
 import { appwriteConfig, databases } from "../appwrite";
 
 import { Simulator } from "../types";

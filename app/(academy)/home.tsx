@@ -90,7 +90,7 @@ export default function Home() {
         <View style={styles.statsRow}>
           <StatsCard label="Total" value={pilots.length.toString()} />
           <StatsCard label="Active" value={pilots.filter(pilot => pilot.activeStatus === 'active').length.toString()} valueColor="text-secondary" />
-          <StatsCard label="Pending" value={pilots.filter(pilot => pilot.activeStatus === 'on_leave').length.toString()} />
+          <StatsCard label="Under Verification" value={pilots.filter(pilot => pilot.isVerified === false).length.toString()} />
         </View>
 
         {/* Action Buttons */}

@@ -1,4 +1,4 @@
-import { Account, Avatars, Client, Databases, ID, Query, Teams } from "appwrite";
+import { Account, Avatars, Client, Databases, Query, Teams } from "react-native-appwrite";
 
 export const appwriteConfig = {
     platform: process.env.EXPO_PUBLIC_APPWRITE_PLATFORM ?? "com.jsm.aviatek",
@@ -6,12 +6,14 @@ export const appwriteConfig = {
     projectId: process.env.EXPO_PUBLIC_APPWRITE_PROJECT_ID ?? "",
     databaseId: process.env.EXPO_PUBLIC_APPWRITE_DATABASE_ID ?? "",
     pilotCollectionId: process.env.EXPO_PUBLIC_APPWRITE_PILOT_COLLECTION_ID ?? "",
+    academyCollectionId: process.env.EXPO_PUBLIC_APPWRITE_ACADEMY_COLLECTION_ID ?? "",
     userCollectionId: process.env.EXPO_PUBLIC_APPWRITE_USER_COLLECTION_ID ?? "",
 };
 
 const client = new Client()
     .setProject(appwriteConfig.projectId)
-    .setEndpoint(appwriteConfig.endpoint);
+    .setEndpoint(appwriteConfig.endpoint)
+    .setPlatform(appwriteConfig.platform);
 
 export const databases = new Databases(client);
 export const account = new Account(client);
@@ -20,55 +22,7 @@ export const avatars = new Avatars(client);
 
 export default client;
 
-export async function createUser(email: string, password: string, username: string) {
-    try {
-        const newAccount = await account.create(
-            ID.unique(),
-            email,
-            password,
-            username
-        );
 
-        if (!newAccount) throw Error;
-
-        const avatarUrl = avatars.getInitials(username);
-
-        await signIn(email, password);
-
-        const newUser = await databases.createDocument(
-            appwriteConfig.databaseId,
-            appwriteConfig.userCollectionId,
-            ID.unique(),
-            {
-                accountId: newAccount.$id,
-                email: email,
-                username: username,
-                avatar: avatarUrl,
-            }
-        );
-
-        return newUser;
-    } catch (error: any) {
-        console.log(error);
-        throw new Error(error);
-    }
-}
-
-export async function signIn(email: string, password: string) {
-    try {
-        // Attempt to delete current session if exists - clean slate
-        try {
-            await account.deleteSession('current');
-        } catch (e) {
-            // Ignore if no session
-        }
-
-        const session = await account.createEmailPasswordSession(email, password);
-        return session;
-    } catch (error: any) {
-        throw new Error(error);
-    }
-}
 
 export async function getCurrentUser() {
     try {
@@ -77,19 +31,29 @@ export async function getCurrentUser() {
 
         const currentUser = await databases.listDocuments(
             appwriteConfig.databaseId,
-            appwriteConfig.userCollectionId,
-            [Query.equal('accountId', currentAccount.$id)]
+            appwriteConfig.pilotCollectionId,
+            [Query.equal('$id', currentAccount.$id)]
         );
 
         if (!currentUser.documents.length) throw Error;
 
         return currentUser.documents[0];
     } catch (error) {
-        console.log(error);
+        console.log("Error getting current user session:", error);
         return null;
     }
 }
+export async function getCurrentUserRole(): Promise<string | null> {
+    try {
+        const currentAccount = await account.get();
+        if (!currentAccount) throw Error;
 
+        return currentAccount.prefs.role;
+    } catch (error) {
+        console.log("Error getting user role:", error);
+        return null;
+    }
+}
 export async function signOut() {
     try {
         const session = await account.deleteSession('current');
@@ -98,3 +62,5 @@ export async function signOut() {
         throw new Error(error);
     }
 }
+
+

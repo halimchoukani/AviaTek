@@ -1,6 +1,7 @@
-import { ID, Query } from "appwrite";
-import { appwriteConfig, databases } from "../appwrite";
-import { Pilot, PilotDocument } from "../types";
+import { ID, Query } from "react-native-appwrite";
+import { account, appwriteConfig, databases } from "../appwrite";
+import { PilotActivityStatus, PilotDocument, PilotStatus } from "../types";
+import { signIn } from "./auth";
 
 
 export const getPilotsByAcademy = async (academy: string = "Academy1") => {
@@ -35,7 +36,7 @@ export const getPilotsNotAssignedToAcademy = async () => {
         throw error;
     }
 }
-export const getPilots = async ()=>{
+export const getPilots = async () => {
     try {
         const result = await databases.listDocuments<PilotDocument>(
             appwriteConfig.databaseId,
@@ -50,20 +51,7 @@ export const getPilots = async ()=>{
         throw error;
     }
 }
-export const createPilot = async (pilot: Pilot) => {
-    try {
-        const result = await databases.createDocument<PilotDocument>(
-            appwriteConfig.databaseId,
-            appwriteConfig.pilotCollectionId,
-            ID.unique(),
-            pilot
-        );
-        return result;
-    } catch (error) {
-        console.error('Error creating pilot:', error);
-        throw error;
-    }
-}
+
 
 export const assignPilotToAcademy = async (pilotId: string) => {
     try {
@@ -79,5 +67,60 @@ export const assignPilotToAcademy = async (pilotId: string) => {
     } catch (error) {
         console.error('Error adding pilot to academy:', error);
         throw error;
+    }
+}
+
+
+export async function registerPilot(
+    email: string,
+    password: string,
+    firstName: string,
+    lastName: string,
+    phone: string,
+    licenseNumber: string,
+) {
+    try {
+        const fullName = `${firstName.trim()} ${lastName.trim()}`;
+        const newAccount = await account.create(
+            ID.unique(),
+            email,
+            password,
+            fullName,
+        );
+
+
+        if (!newAccount) throw Error;
+
+        const newPilot = await databases.createDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.pilotCollectionId,
+            newAccount.$id,
+            {
+                name: firstName.trim(),
+                lastname: lastName.trim(),
+                email: email,
+                phone: phone,
+                licenseNumber: licenseNumber || "N/A",
+                flightHours: 0,
+                rank: licenseNumber.slice(0, licenseNumber.indexOf("-")).toUpperCase(),
+                status: PilotStatus.Online,
+                activeStatus: PilotActivityStatus.Active,
+                dateOfBirth: new Date().toISOString(),
+                isVerified: false
+            }
+        );
+
+        await signIn(email, password);
+        await account.updatePrefs({
+            role: "pilot"
+        });
+        await account.updatePhone(
+            phone,
+            password
+        );
+        return newPilot;
+    } catch (error: any) {
+        console.log(error);
+        throw new Error(error);
     }
 }
