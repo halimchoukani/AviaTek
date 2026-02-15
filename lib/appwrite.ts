@@ -26,16 +26,26 @@ export default client;
 
 export async function getCurrentUser() {
     try {
+        console.log("getting current user .....");
         const currentAccount = await account.get();
-        if (!currentAccount) throw Error;
+        if (!currentAccount) throw new Error("No current account");
+        let currentUser;
+        if (currentAccount.prefs.role === "pilot") {
+            currentUser = await databases.listDocuments(
+                appwriteConfig.databaseId,
+                appwriteConfig.pilotCollectionId,
+                [Query.equal('$id', currentAccount.$id)]
+            );
+        } else {
+            currentUser = await databases.listDocuments(
+                appwriteConfig.databaseId,
+                appwriteConfig.academyCollectionId,
+                [Query.equal('$id', currentAccount.prefs.academyId)]
+            );
+        }
 
-        const currentUser = await databases.listDocuments(
-            appwriteConfig.databaseId,
-            appwriteConfig.pilotCollectionId,
-            [Query.equal('$id', currentAccount.$id)]
-        );
 
-        if (!currentUser.documents.length) throw Error;
+        if (!currentUser.documents.length) throw new Error("User not found in pilot collection");
 
         return currentUser.documents[0];
     } catch (error) {
@@ -45,8 +55,10 @@ export async function getCurrentUser() {
 }
 export async function getCurrentUserRole(): Promise<string | null> {
     try {
+        console.log("getting current user role .....");
+
         const currentAccount = await account.get();
-        if (!currentAccount) throw Error;
+        if (!currentAccount) throw new Error("No current account");
 
         return currentAccount.prefs.role;
     } catch (error) {

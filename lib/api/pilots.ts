@@ -1,20 +1,17 @@
 import { ID, Query } from "react-native-appwrite";
-import { account, appwriteConfig, databases } from "../appwrite";
+import { account, appwriteConfig, databases, teams } from "../appwrite";
 import { PilotActivityStatus, PilotDocument, PilotStatus } from "../types";
 import { signIn } from "./auth";
 
 
-export const getPilotsByAcademy = async (academy: string = "Academy1") => {
+export const getPilotsByAcademy = async () => {
     try {
-        const result = await databases.listDocuments<PilotDocument>(
-            appwriteConfig.databaseId,
-            appwriteConfig.pilotCollectionId,
-            [
-                Query.equal('academy', academy),
-                Query.orderDesc('$createdAt')
-            ]
-        );
-        return result.documents;
+        const currentAccount = await account.get();
+        const result = await teams.listMemberships(currentAccount.prefs.academyId);
+
+        const pilots = result.memberships.filter((membership) => membership.role === "pilot");
+
+        return pilots;
     } catch (error) {
         console.error('Error fetching pilots:', error);
         throw error;

@@ -1,14 +1,12 @@
 import { ID } from "react-native-appwrite";
-import { account, appwriteConfig, databases } from "../appwrite";
+import { account, appwriteConfig, databases, teams } from "../appwrite";
 import { signIn } from "./auth";
 
 interface RegisterAcademyParams {
     name: string;
-    type: string;
     country: string;
     city: string;
     address: string;
-    certifications: string[];
     email: string;
     phone: string;
     website?: string;
@@ -17,58 +15,78 @@ interface RegisterAcademyParams {
     password: string;
 }
 
-export async function registerAcademy({
-    name,
-    type,
-    country,
-    city,
-    address,
-    certifications,
-    email,
-    phone,
-    website,
-    adminName,
-    adminEmail,
-    password,
-}: RegisterAcademyParams) {
+export async function registerAcademy(params: RegisterAcademyParams) {
+    const {
+        name,
+        country,
+        city,
+        address,
+        email,
+        phone,
+        website,
+        adminName,
+        adminEmail,
+        password,
+    } = params;
+
     try {
-        const newAccount = await account.create(
+        // 1️⃣ Create user
+        const user = await account.create(
             ID.unique(),
             adminEmail,
             password,
-            adminName,
+            adminName
         );
 
-        if (!newAccount) throw Error;
+        // 2️⃣ Create session
+        await signIn(adminEmail, password);
 
-        const newAcademy = await databases.createDocument(
+        // 3️⃣ Create academy document
+        const orgId = ID.unique();
+
+        const academy = await databases.createDocument(
             appwriteConfig.databaseId,
             appwriteConfig.academyCollectionId,
-            newAccount.$id,
+            orgId,
             {
                 name,
-                type,
                 country,
                 city,
                 address,
-                certifications,
-                email, // Organization email
-                phone,
+                contactEmail: email,
+                phoneNumber: phone,
                 website,
-                adminName,
-                adminEmail, // Admin/Login email
                 isVerified: false,
             }
         );
 
-        await signIn(adminEmail, password);
+        // 4️⃣ Create team (creator automatically owner)
+        await teams.create(orgId, name);
+
+        // 5️⃣ Update user prefs
         await account.updatePrefs({
-            role: "academy"
+            role: "academy",
+            academyId: orgId,
         });
 
-        return newAcademy;
+        return academy;
     } catch (error: any) {
         console.log(error);
-        throw new Error(error);
+        throw error;
     }
 }
+
+export async function getAcademyById(id: string) {
+    try {
+        const academy = await databases.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.academyCollectionId,
+            id
+        );
+        return academy;
+    } catch (error: any) {
+        console.log(error);
+        throw error;
+    }
+}
+

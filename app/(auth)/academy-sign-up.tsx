@@ -52,11 +52,9 @@ export default function AcademySignUp() {
         try {
             await registerAcademy({
                 name: orgName,
-                type: orgType,
                 country,
                 city,
                 address,
-                certifications,
                 email: orgEmail,
                 phone,
                 website,
@@ -118,7 +116,7 @@ export default function AcademySignUp() {
                 onChangeText={setOrgName}
             />
 
-            <InputLabel label="Organization Type" />
+            {/* <InputLabel label="Organization Type" />
             <View style={styles.row}>
                 <TypeCard
                     title="Part 141 School"
@@ -146,7 +144,7 @@ export default function AcademySignUp() {
                     selected={orgType === "Other"}
                     onPress={() => setOrgType("Other")}
                 />
-            </View>
+            </View> */}
 
             <View style={[styles.row, { marginTop: 24 }]}>
                 <View style={{ flex: 1, marginRight: 8 }}>
@@ -189,7 +187,7 @@ export default function AcademySignUp() {
             <Text style={styles.sectionTitle}>Certifications</Text>
             <Text style={styles.sectionSubtitle}>Select your regulatory approvals</Text>
 
-            <CertOption
+            {/* <CertOption
                 title="FAA Part 141"
                 subtitle="FAA Approved Flight School"
                 selected={certifications.includes("FAA Part 141")}
@@ -212,7 +210,7 @@ export default function AcademySignUp() {
                 subtitle="Australian Civil Aviation Safety Authority"
                 selected={certifications.includes("CASA Part 141")}
                 onPress={() => toggleCertification("CASA Part 141")}
-            />
+            /> */}
         </View>
     );
 

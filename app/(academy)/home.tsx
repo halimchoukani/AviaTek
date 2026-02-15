@@ -1,15 +1,16 @@
 import PilotCard from "@/components/PilotCard";
 import StatsCard from "@/components/StatsCard";
 import { getPilotsByAcademy } from "@/lib/api/pilots";
-import client, { appwriteConfig } from "@/lib/appwrite";
+import { getCurrentUser } from "@/lib/appwrite";
 import { PilotDocument } from "@/lib/types";
 
 import {
   Feather,
   FontAwesome5
 } from "@expo/vector-icons";
+import { useQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import React, { useEffect, useState } from "react";
+import React from "react";
 import {
   FlatList,
   StatusBar,
@@ -25,38 +26,25 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function Home() {
   const router = useRouter();
 
-  const [pilots, setPilots] = useState<PilotDocument[]>([]);
 
   const [searchQuery, setSearchQuery] = React.useState("");
-  const [filteredPilots, setFilteredPilots] = React.useState<PilotDocument[]>([]);
-  const fetchPilots = async () => {
-    try {
-      const fetchedPilots = await getPilotsByAcademy();
-      setPilots(fetchedPilots);
-      setFilteredPilots(fetchedPilots);
-    } catch (error) {
-      console.error('Error fetching pilots:', error);
-    }
-  };
-  useEffect(() => {
-    const unsubscribe = client.subscribe(`databases.${appwriteConfig.databaseId}.collections.${appwriteConfig.pilotCollectionId}.documents`, (response) => {
-      fetchPilots();
-    })
-    return () => unsubscribe();
-  }, [])
-  useEffect(() => {
-    fetchPilots();
-  }, []);
-  useEffect(() => {
+  const { data: pilots = [], isLoading, error } = useQuery({
+    queryKey: ['pilots'],
+    queryFn: () => getPilotsByAcademy(),
+  });
+  const { data: academy, isLoading: academyLoading, error: academyError } = useQuery({
+    queryKey: ['academy'],
+    queryFn: () => getCurrentUser(),
+  });
+
+  const filteredPilots = React.useMemo(() => {
     if (searchQuery.length > 0) {
-      const filteredPilots = pilots.filter((pilot) =>
+      return pilots.filter((pilot: PilotDocument) =>
         pilot.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
         pilot.licenseNumber.toLowerCase().includes(searchQuery.toLowerCase())
       );
-      setFilteredPilots(filteredPilots);
-    } else {
-      setFilteredPilots(pilots);
     }
+    return pilots;
   }, [searchQuery, pilots]);
   return (
     <SafeAreaView style={styles.container}>
@@ -72,7 +60,7 @@ export default function Home() {
             <View>
               <Text style={styles.academyName}
                 onPress={() => router.push("/profile")}>
-                Horizon Academy
+                {academy?.name}
               </Text>
               <Text style={styles.administrationText}>
                 Administration

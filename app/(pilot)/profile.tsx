@@ -83,10 +83,6 @@ export default function PilotProfile() {
                 email, // Email might not be editable depending on auth, but let's allow it in UI for now or disable input
                 licenseNumber,
                 licenseExpiry,
-                medicalClass,
-                medicalExpiry,
-                emergencyContactName: emergencyName,
-                emergencyContactPhone: emergencyPhone,
             };
 
             await databases.updateDocument(
@@ -224,7 +220,7 @@ export default function PilotProfile() {
                                 />
                                 {!isEditing && (
                                     <View style={styles.badge}>
-                                        <Text style={styles.badgeText}>ATPL</Text>
+                                        <Text style={styles.badgeText}>{pilot?.rank}</Text>
                                     </View>
                                 )}
                             </View>

@@ -26,7 +26,7 @@ export async function createUser(email: string, password: string, username: stri
             username
         );
 
-        if (!newAccount) throw Error;
+        if (!newAccount) throw new Error("Failed to create account");
 
         const avatarUrl = avatars.getInitials(username);
 
