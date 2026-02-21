@@ -1,4 +1,4 @@
-import { ID, Query } from "react-native-appwrite";
+import { ID, Query, Roles } from "react-native-appwrite";
 import { account, appwriteConfig, databases, teams } from "../appwrite";
 import { PilotActivityStatus, PilotDocument, PilotStatus } from "../types";
 import { signIn } from "./auth";
@@ -62,13 +62,18 @@ export const getPilots = async () => {
 
 export const assignPilotToAcademy = async (pilotId: string) => {
     try {
-        const result = await databases.updateDocument<PilotDocument>(
+        const currentAccount = await account.get();
+        const pilot = await databases.getDocument<PilotDocument>(
             appwriteConfig.databaseId,
             appwriteConfig.pilotCollectionId,
-            pilotId,
-            {
-                academy: "Academy1"
-            }
+            pilotId
+        );
+        const result = await teams.createMembership(
+            currentAccount.prefs.academyId,
+            [Roles.Pilot],
+            pilot.email,
+            pilot.name + " " + pilot.lastname,
+            pilot.phone,
         );
         return result;
     } catch (error) {
