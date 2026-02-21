@@ -1,4 +1,4 @@
-import { ID } from "react-native-appwrite";
+import { ID, Permission, Role } from "react-native-appwrite";
 import { account, appwriteConfig, databases, teams } from "../appwrite";
 import { signIn } from "./auth";
 
@@ -44,6 +44,9 @@ export async function registerAcademy(params: RegisterAcademyParams) {
         // 3️⃣ Create academy document
         const orgId = ID.unique();
 
+        // 4️⃣ Create team (creator automatically owner)
+        const team = await teams.create(orgId, name);
+
         const academy = await databases.createDocument(
             appwriteConfig.databaseId,
             appwriteConfig.academyCollectionId,
@@ -57,11 +60,20 @@ export async function registerAcademy(params: RegisterAcademyParams) {
                 phoneNumber: phone,
                 website,
                 isVerified: false,
-            }
+            },
+            [
+                Permission.read(Role.user(user.$id)),        // Only owner can read
+                Permission.update(Role.user(user.$id)),      // Only owner can update
+                Permission.delete(Role.user(user.$id)),    // Only owner can delete
+                // Team members can read
+                Permission.read(Role.team(team.$id)),
+                // Admin team access Update and Delete
+                Permission.update(Role.team(team.$id, "owner")),
+                Permission.delete(Role.team(team.$id, "owner")),
+            ]
         );
 
-        // 4️⃣ Create team (creator automatically owner)
-        await teams.create(orgId, name);
+
 
         // 5️⃣ Update user prefs
         await account.updatePrefs({

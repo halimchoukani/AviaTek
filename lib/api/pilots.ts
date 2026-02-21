@@ -1,28 +1,29 @@
-import { ID, Query, Roles } from "react-native-appwrite";
+import { ID, Query } from "react-native-appwrite";
 import { account, appwriteConfig, databases, teams } from "../appwrite";
 import { PilotActivityStatus, PilotDocument, PilotStatus } from "../types";
 import { signIn } from "./auth";
-
 
 export const getPilotsByAcademy = async () => {
     try {
         const currentAccount = await account.get();
         const result = await teams.listMemberships(currentAccount.prefs.academyId);
 
-        const pilotsMembers = result.memberships.filter((membership) => membership.roles.includes("pilot"));
+        const pilotsMembers = result.memberships.filter((membership) =>
+            membership.roles.includes("pilot"),
+        );
         const pilots = await Promise.all(
             pilotsMembers.map(async (membership) => {
                 const pilot = await databases.getDocument<PilotDocument>(
                     appwriteConfig.databaseId,
                     appwriteConfig.pilotCollectionId,
-                    membership.userId
+                    membership.userId,
                 );
                 return pilot;
-            })
+            }),
         );
         return pilots;
     } catch (error) {
-        console.error('Error fetching pilots:', error);
+        console.error("Error fetching pilots:", error);
         throw error;
     }
 };
@@ -32,33 +33,27 @@ export const getPilotsNotAssignedToAcademy = async () => {
         const result = await databases.listDocuments<PilotDocument>(
             appwriteConfig.databaseId,
             appwriteConfig.pilotCollectionId,
-            [
-                Query.isNull('academy'),
-                Query.orderDesc('$createdAt')
-            ]
+            [Query.isNull("academy"), Query.orderDesc("$createdAt")],
         );
         return result.documents;
     } catch (error) {
-        console.error('Error fetching pilots:', error);
+        console.error("Error fetching pilots:", error);
         throw error;
     }
-}
+};
 export const getPilots = async () => {
     try {
         const result = await databases.listDocuments<PilotDocument>(
             appwriteConfig.databaseId,
             appwriteConfig.pilotCollectionId,
-            [
-                Query.orderDesc('$createdAt')
-            ]
+            [Query.orderDesc("$createdAt")],
         );
         return result.documents;
     } catch (error) {
-        console.error('Error fetching pilots:', error);
+        console.error("Error fetching pilots:", error);
         throw error;
     }
-}
-
+};
 
 export const assignPilotToAcademy = async (pilotId: string) => {
     try {
@@ -66,22 +61,22 @@ export const assignPilotToAcademy = async (pilotId: string) => {
         const pilot = await databases.getDocument<PilotDocument>(
             appwriteConfig.databaseId,
             appwriteConfig.pilotCollectionId,
-            pilotId
+            pilotId,
         );
         const result = await teams.createMembership(
             currentAccount.prefs.academyId,
-            [Roles.Pilot],
+            ["pilot"],
             pilot.email,
-            pilot.name + " " + pilot.lastname,
-            pilot.phone,
+            pilot.$id,
+            undefined, // phone
+            `http://localhost:3000/`,
         );
         return result;
     } catch (error) {
-        console.error('Error adding pilot to academy:', error);
+        console.error("Error adding pilot to academy:", error);
         throw error;
     }
-}
-
+};
 
 export async function registerPilot(
     email: string,
@@ -100,7 +95,6 @@ export async function registerPilot(
             fullName,
         );
 
-
         if (!newAccount) throw Error;
 
         const newPilot = await databases.createDocument(
@@ -118,18 +112,15 @@ export async function registerPilot(
                 status: PilotStatus.Online,
                 activeStatus: PilotActivityStatus.Active,
                 dateOfBirth: new Date().toISOString(),
-                isVerified: false
-            }
+                isVerified: false,
+            },
         );
 
         await signIn(email, password);
         await account.updatePrefs({
-            role: "pilot"
+            role: "pilot",
         });
-        await account.updatePhone(
-            phone,
-            password
-        );
+        await account.updatePhone(phone, password);
         return newPilot;
     } catch (error: any) {
         console.log(error);

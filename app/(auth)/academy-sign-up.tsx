@@ -43,7 +43,7 @@ export default function AcademySignUp() {
     const [password, setPassword] = useState("");
 
     const handleRegister = async () => {
-        if (!orgName || !adminEmail || !password || !orgType) {
+        if (!orgName || !adminEmail || !password) {
             Alert.alert("Error", "Please fill in all required fields.");
             return;
         }
@@ -78,8 +78,8 @@ export default function AcademySignUp() {
 
     const nextStep = () => {
         if (step === 1) {
-            if (!orgName || !orgType) {
-                Alert.alert("Error", "Please enter Organization Name and Type.");
+            if (!orgName) {
+                Alert.alert("Error", "Please enter Organization Name.");
                 return;
             }
         }
