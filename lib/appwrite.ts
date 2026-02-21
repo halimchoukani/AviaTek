@@ -8,6 +8,8 @@ export const appwriteConfig = {
     pilotCollectionId: process.env.EXPO_PUBLIC_APPWRITE_PILOT_COLLECTION_ID ?? "",
     academyCollectionId: process.env.EXPO_PUBLIC_APPWRITE_ACADEMY_COLLECTION_ID ?? "",
     userCollectionId: process.env.EXPO_PUBLIC_APPWRITE_USER_COLLECTION_ID ?? "",
+    equipmentCollectionId: process.env.EXPO_PUBLIC_APPWRITE_EQUIPMENT_COLLECTION_ID ?? "equipment",
+    simulatorCollectionId: process.env.EXPO_PUBLIC_APPWRITE_SIMULATOR_COLLECTION_ID ?? "simulators",
 };
 
 const client = new Client()
@@ -61,6 +63,19 @@ export async function getCurrentUserRole(): Promise<string | null> {
         if (!currentAccount) throw new Error("No current account");
 
         return currentAccount.prefs.role;
+    } catch (error) {
+        console.log("Error getting user role:", error);
+        return null;
+    }
+}
+export async function getCurrentAcademy(): Promise<string | null> {
+    try {
+        console.log("getting current academy .....");
+
+        const currentAccount = await account.get();
+        if (!currentAccount) throw new Error("No current account");
+
+        return currentAccount.prefs.academyId;
     } catch (error) {
         console.log("Error getting user role:", error);
         return null;

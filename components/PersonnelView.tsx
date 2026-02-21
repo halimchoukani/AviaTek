@@ -1,6 +1,6 @@
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import React from "react";
-import { ActivityIndicator, FlatList, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { getAcademyAdmins } from "@/lib/api/academies";
 import { getPilotsByAcademy } from "@/lib/api/pilots";
@@ -22,7 +22,7 @@ export default function PersonnelView() {
     }
 
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             {/* Stats Row */}
             <View style={styles.statsRow}>
                 <View style={styles.statsCard}>
@@ -47,10 +47,8 @@ export default function PersonnelView() {
                     <FontAwesome5 name="user-tie" size={14} color="#94A3B8" />
                     <Text style={styles.sectionTitle}>Admins</Text>
                 </View>
-                <FlatList
-                    contentContainerStyle={styles.listContainer}
-                    data={admins}
-                    renderItem={({ item: staff }) => (
+                <View style={styles.listContainer}>
+                    {admins?.map((staff) => (
                         <View key={staff.userId} style={styles.card}>
                             <View style={styles.cardHeader}>
                                 <View>
@@ -61,33 +59,10 @@ export default function PersonnelView() {
                                         {staff.userEmail}
                                     </Text>
                                 </View>
-                                {/* <View style={[
-                                    styles.badge,
-                                    staff.userStatus === "Online" ? styles.badgeAvailable : styles.badgeDefault
-                                ]}>
-                                    <View style={styles.badgeContent}>
-                                        <View style={[
-                                            styles.statusDot,
-                                            staff.userStatus === "Online"
-                                                ? styles.bgSecondary
-                                                : staff.status === "Offline"
-                                                    ? styles.bgGreen
-                                                    : styles.bgGray
-                                        ]} />
-                                        <Text style={[
-                                            styles.badgeText,
-                                            staff.status === "Online" ? styles.textGreen :
-                                                staff.status === "Offline" ? styles.textSecondary : styles.textGray
-                                        ]}>
-                                            {staff.status}
-                                        </Text>
-                                    </View>
-                                </View> */}
                             </View>
                         </View>
-                    )}
-                    showsVerticalScrollIndicator={false}
-                />
+                    ))}
+                </View>
 
             </View>
 
@@ -97,17 +72,13 @@ export default function PersonnelView() {
                 <Text style={styles.sectionTitle}>Pilots</Text>
             </View>
 
-            <FlatList
-                contentContainerStyle={styles.listContainer}
-                data={pilots}
-                keyExtractor={(item) => item.$id}
-                renderItem={({ item: pilot }) => (
-                    <PilotCard pilot={pilot} />
-                )}
-                showsVerticalScrollIndicator={false}
-            />
+            <View style={styles.listContainer}>
+                {pilots?.map((pilot) => (
+                    <PilotCard key={pilot.$id} pilot={pilot} />
+                ))}
+            </View>
 
-        </View>
+        </ScrollView>
     );
 }
 

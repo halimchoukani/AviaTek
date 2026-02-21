@@ -1,11 +1,12 @@
 import { createPlane } from '@/lib/api/planes';
 import { createSimulator } from '@/lib/api/simulators';
+import { getCurrentAcademy } from '@/lib/appwrite';
 import { uploadImageToCloudinary } from '@/lib/cloudinary';
 import { EquipmentStatus } from '@/lib/types';
 import { Feather, MaterialCommunityIcons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
 import { Stack, router } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
     ActivityIndicator,
     Alert,
@@ -25,6 +26,15 @@ type EquipmentType = 'plane' | 'simulator';
 export default function AddEquipment() {
     const [type, setType] = useState<EquipmentType>('plane');
     const [loading, setLoading] = useState(false);
+    const [academyId, setAcademyId] = useState<string | null>(null);
+
+    useEffect(() => {
+        const fetchAcademy = async () => {
+            const id = await getCurrentAcademy();
+            setAcademyId(id);
+        };
+        fetchAcademy();
+    }, []);
 
     // Common fields
     const [status, setStatus] = useState<EquipmentStatus>(EquipmentStatus.Operational);
@@ -95,7 +105,8 @@ export default function AddEquipment() {
                     status,
                     maxOccupancy: parseInt(maxOccupancy) || 0,
                     location,
-                    images: imageUrl ? [imageUrl] : []
+                    images: imageUrl ? [imageUrl] : [],
+                    academy: academyId || ""
                 });
             } else {
                 await createSimulator({
@@ -105,7 +116,8 @@ export default function AddEquipment() {
                     location,
                     status,
                     maxOccupancy: parseInt(maxOccupancy) || 0,
-                    images: imageUrl ? [imageUrl] : []
+                    images: imageUrl ? [imageUrl] : [],
+                    academy: academyId || ""
                 });
             }
             Alert.alert("Success", `${type.charAt(0).toUpperCase() + type.slice(1)} added successfully!`);

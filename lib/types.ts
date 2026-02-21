@@ -73,6 +73,7 @@ export interface Simulator {
     status: EquipmentStatus;
     maxOccupancy: number;
     images: string[];
+    academy: string;
 }
 
 //Aircraft
@@ -88,4 +89,5 @@ export interface Plane {
     maxOccupancy: number;
     location: string;
     images: string[];
+    academy: string;
 }
