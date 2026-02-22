@@ -59,7 +59,7 @@ export default function PilotLayout() {
      <Tabs.Screen
   name="exit"
   options={{
-    title: "Exit",
+    title: "Exitt",
     tabBarIcon: ({ color }) => (
       <Feather name="log-out" size={24} color={color} />
     ),
