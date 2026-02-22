@@ -8,7 +8,7 @@ import {
   Feather,
   FontAwesome5
 } from "@expo/vector-icons";
-import { useQuery } from "@tanstack/react-query";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import React from "react";
 import {
@@ -28,14 +28,15 @@ export default function Home() {
 
 
   const [searchQuery, setSearchQuery] = React.useState("");
-  const { data: pilots = [], isLoading, error } = useQuery({
-    queryKey: ['pilots'],
-    queryFn: () => getPilotsByAcademy(),
-  });
-  const { data: academy, isLoading: academyLoading, error: academyError } = useQuery({
+  const { data: academy, isLoading: academyLoading, error: academyError } = useSuspenseQuery({
     queryKey: ['academy'],
     queryFn: () => getCurrentUser(),
   });
+  const { data: pilots = [], isFetching: isPilotsFetching, error } = useSuspenseQuery({
+    queryKey: ['pilots', academy?.$id],
+    queryFn: () => academy?.$id ? getPilotsByAcademy(academy.$id) : Promise.resolve([]),
+  });
+
 
   const filteredPilots = React.useMemo(() => {
     if (searchQuery.length > 0) {
@@ -59,7 +60,7 @@ export default function Home() {
             </View>
             <View>
               <Text style={styles.academyName}
-                onPress={() => router.push("/profile")}>
+                onPress={() => router.push(`/academy/${academy?.$id}`)}>
                 {academy?.name}
               </Text>
               <Text style={styles.administrationText}>

@@ -1,14 +1,31 @@
+import { getAcademyById } from "@/lib/api/academies";
+import { getPilotsByAcademy } from "@/lib/api/pilots";
+import { getPlanes } from "@/lib/api/planes";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import { LinearGradient } from 'expo-linear-gradient';
-import { useRouter } from "expo-router";
+import { useLocalSearchParams, useRouter } from "expo-router";
 import { useState } from "react";
 import { ScrollView, StatusBar, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-export default function Profile() {
+export default function AcademyProfile() {
+    const { id } = useLocalSearchParams<{ id: string }>();
+    const { data: academy, isLoading: academyLoading, error: academyError } = useSuspenseQuery({
+        queryKey: ['academy', id],
+        queryFn: () => getAcademyById(id),
+    });
+    const { data: pilots, isLoading: pilotsLoading, error: pilotsError } = useSuspenseQuery({
+        queryKey: ['pilots', academy?.$id],
+        queryFn: () => getPilotsByAcademy(academy?.$id),
+    });
+    const { data: planes, isLoading: planeLoading, error: planeErorr } = useSuspenseQuery({
+        queryKey: ['planes', academy?.$id],
+        queryFn: () => getPlanes(academy?.$id),
+    });
     const router = useRouter();
-    const [orgName, setOrgName] = useState("Horizon Flight Academy");
-    const [address, setAddress] = useState("123 Airport Road, Hangar 5, LAX");
+    const [orgName, setOrgName] = useState(academy?.name);
+    const [address, setAddress] = useState(academy?.address);
 
     return (
         <View style={styles.container}>
@@ -48,7 +65,7 @@ export default function Profile() {
 
                             <View style={styles.profileCardContent}>
                                 <View style={styles.profileHeader}>
-                                    <Text style={styles.profileName}>Horizon Flight Academy</Text>
+                                    <Text style={styles.profileName}>{orgName}</Text>
                                     <View style={styles.verifiedBadge}>
                                         <Feather name="check-circle" size={10} color="#4ADE80" />
                                         <Text style={styles.verifiedText}>VERIFIED</Text>
@@ -58,21 +75,21 @@ export default function Profile() {
 
                                 <View style={styles.locationRow}>
                                     <Feather name="map-pin" size={12} color="#94A3B8" />
-                                    <Text style={styles.locationText}>Los Angeles, CA, USA</Text>
+                                    <Text style={styles.locationText}>{academy?.address}</Text>
                                 </View>
 
                                 {/* Stats */}
                                 <View style={styles.statsContainer}>
                                     <View style={styles.statItem}>
-                                        <Text style={styles.statValue}>142</Text>
+                                        <Text style={styles.statValue}>{pilots?.length}</Text>
                                         <Text style={styles.statLabel}>Pilots</Text>
                                     </View>
                                     <View style={[styles.statItem, styles.statDivider]}>
-                                        <Text style={[styles.statValue, styles.textSecondary]}>12</Text>
+                                        <Text style={[styles.statValue, styles.textSecondary]}>{planes?.length}</Text>
                                         <Text style={styles.statLabel}>Aircraft</Text>
                                     </View>
                                     <View style={[styles.statItem, styles.statDivider]}>
-                                        <Text style={styles.statValue}>2018</Text>
+                                        <Text style={styles.statValue}>{academy?.$createdAt.slice(0, 4)}</Text>
                                         <Text style={styles.statLabel}>Est.</Text>
                                     </View>
                                 </View>
@@ -89,10 +106,12 @@ export default function Profile() {
                                 <Feather name="phone" size={20} color="#C9A961" />
                                 <Text style={styles.actionButtonText}>Call</Text>
                             </TouchableOpacity>
-                            <TouchableOpacity style={styles.actionButton}>
-                                <Feather name="globe" size={20} color="#C9A961" />
-                                <Text style={styles.actionButtonText}>Website</Text>
-                            </TouchableOpacity>
+                            {academy?.website && (
+                                <TouchableOpacity style={styles.actionButton}>
+                                    <Feather name="globe" size={20} color="#C9A961" />
+                                    <Text style={styles.actionButtonText}>Website</Text>
+                                </TouchableOpacity>
+                            )}
                         </View>
 
                         {/* General Settings */}
@@ -207,6 +226,7 @@ const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
+        paddingTop: 10,
     },
     profileCard: {
         backgroundColor: "#1E293B",

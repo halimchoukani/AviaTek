@@ -4,19 +4,25 @@ import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-nat
 
 import { getAcademyAdmins } from "@/lib/api/academies";
 import { getPilotsByAcademy } from "@/lib/api/pilots";
+import { getCurrentUser } from "@/lib/appwrite";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import PilotCard from "./PilotCard";
 ;
 
 export default function PersonnelView() {
-    const { data: pilots, isFetching: isPilotsFetching } = useSuspenseQuery({
-        queryKey: ["pilots"],
-        queryFn: getPilotsByAcademy,
-    })
+
     const { data: admins, isFetching: isAdminsFetching } = useSuspenseQuery({
         queryKey: ["admins"],
         queryFn: getAcademyAdmins,
     })
+    const { data: academy, isLoading: academyLoading, error: academyError } = useSuspenseQuery({
+        queryKey: ['academy'],
+        queryFn: () => getCurrentUser(),
+    });
+    const { data: pilots = [], isFetching: isPilotsFetching, error } = useSuspenseQuery({
+        queryKey: ['pilots', academy?.$id],
+        queryFn: () => academy?.$id ? getPilotsByAcademy(academy.$id) : Promise.resolve([]),
+    });
     if (isPilotsFetching || isAdminsFetching) {
         return <ActivityIndicator size={"large"} color={"#C9A961"} />
     }
