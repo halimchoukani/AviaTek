@@ -1,4 +1,4 @@
-import { Account, Avatars, Client, Databases, Query, Teams } from "react-native-appwrite";
+import { Account, Avatars, Client, Databases, Functions, Query, Teams } from "react-native-appwrite";
 
 export const appwriteConfig = {
     platform: process.env.EXPO_PUBLIC_APPWRITE_PLATFORM ?? "com.jsm.aviatek",
@@ -21,6 +21,7 @@ export const databases = new Databases(client);
 export const account = new Account(client);
 export const teams = new Teams(client);
 export const avatars = new Avatars(client);
+export const functions = new Functions(client);
 
 export default client;
 

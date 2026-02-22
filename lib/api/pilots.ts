@@ -1,5 +1,5 @@
 import { ID, Query } from "react-native-appwrite";
-import { account, appwriteConfig, databases, teams } from "../appwrite";
+import { account, appwriteConfig, databases, functions, teams } from "../appwrite";
 import { PilotActivityStatus, PilotDocument, PilotStatus } from "../types";
 import { signIn } from "./auth";
 
@@ -63,15 +63,25 @@ export const assignPilotToAcademy = async (pilotId: string) => {
             appwriteConfig.pilotCollectionId,
             pilotId,
         );
-        const result = await teams.createMembership(
-            currentAccount.prefs.academyId,
-            ["pilot"],
-            pilot.email,
-            pilot.$id,
-            undefined, // phone
-            `http://localhost:3000/`,
+        const invite = await functions.createExecution(
+            "699ac20c003df22c4efa",
+            JSON.stringify({
+                userId: pilot.$id,
+                teamId: currentAccount.prefs.academyId,
+                roles: ["pilot"]
+            })
         );
-        return result;
+        if (invite.status === "completed") {
+            await databases.updateDocument(
+                appwriteConfig.databaseId,
+                appwriteConfig.pilotCollectionId,
+                pilotId,
+                {
+                    academy: currentAccount.prefs.academyId,
+                }
+            );
+        }
+        return invite;
     } catch (error) {
         console.error("Error adding pilot to academy:", error);
         throw error;
