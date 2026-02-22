@@ -1,45 +1,84 @@
 import RequestCard from "@/components/RequestCard";
 import StatsCard from "@/components/StatsCard";
-import { MOCK_REQUESTS } from "@/constant/Variables";
+import { getAllRequestsForAcademy, getRequestsByStatus, updateRequestStatus } from "@/lib/api/requests";
+import { getCurrentUser } from "@/lib/appwrite";
+import { Request, RequestStatus } from "@/lib/types";
 import { Feather } from "@expo/vector-icons";
-import React, { useState } from "react";
-import {
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from "react-native";
+import React, { useEffect, useState } from "react";
+import { FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
 
 export default function RequestsScreen() {
   const insets = useSafeAreaInsets();
   const [activeFilter, setActiveFilter] = useState("All");
   const [expandedId, setExpandedId] = useState<string | null>("0"); // Start with first expanded as per design
-  const [requests, setRequests] = useState(MOCK_REQUESTS);
+  const [requests, setRequests] = useState<Request[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [academyId, setAcademyId] = useState<string | null>(null);
 
   const stats = {
     total: requests.length,
-    approved: requests.filter(r => r.status === "Approved").length,
-    pending: requests.filter(r => r.status === "Pending").length,
+    approved: requests.filter(r => r.status === RequestStatus.Approved).length,
+    pending: requests.filter(r => r.status === RequestStatus.Pending).length,
   };
 
-  const handleApprove = (id: string) => {
-    setRequests(prev => prev.map(req =>
-      req.id === id ? { ...req, status: "Approved" as const } : req
-    ));
+
+  const handleApprove = async (id: string) => {
+    try {
+      await updateRequestStatus(id, RequestStatus.Approved);
+      setRequests(prev => prev.map(req =>
+        (req as any).$id === id ? { ...req, status: RequestStatus.Approved } : req
+      ));
+    } catch (error) {
+      console.error("Error approving request:", error);
+    }
   };
 
-  const handleReject = (id: string) => {
-    setRequests(prev => prev.map(req =>
-      req.id === id ? { ...req, status: "Rejected" as const } : req
-    ));
+  const handleReject = async (id: string) => {
+    try {
+      await updateRequestStatus(id, RequestStatus.Rejected);
+      setRequests(prev => prev.map(req =>
+        (req as any).$id === id ? { ...req, status: RequestStatus.Rejected } : req
+      ));
+    } catch (error) {
+      console.error("Error rejecting request:", error);
+    }
   };
 
-  const filteredRequests = requests.filter((req) => {
-    if (activeFilter === "All") return true;
-    return req.status === activeFilter;
-  });
+
+  const filteredRequests = requests; // API already filters by status
+
+  useEffect(() => {
+    const fetchRequests = async () => {
+      try {
+        const user = await getCurrentUser();
+
+        const academy =
+          user.academy || user.prefs?.academyId;
+
+        if (!academy) return;
+
+        setAcademyId(academy);
+
+        let data;
+        if (activeFilter === "All") {
+          data = await getAllRequestsForAcademy(academy);
+        } else {
+          data = await getRequestsByStatus(academy, activeFilter.toLowerCase() as RequestStatus);
+        }
+
+        setRequests(data);
+
+      } catch (error) {
+        console.error("Error loading requests:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchRequests();
+  }, [activeFilter]);
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -98,19 +137,36 @@ export default function RequestsScreen() {
         <FlatList
           style={styles.list}
           data={filteredRequests}
-          keyExtractor={(item) => item.id}
+          keyExtractor={(item) => (item as any).$id}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
             <RequestCard
-              request={item}
-              expanded={expandedId === item.id}
+              request={{
+                id: item.$id,
+                name: (item as any).pilotName || "Unknown Pilot",
+                rank: (item as any).pilotRank || "",
+                licenseId: (item as any).pilotLicense || "",
+                status: (item.status.charAt(0).toUpperCase() + item.status.slice(1)) as any,
+                type: (item as any).type || "Initial",
+
+                aircraft: (item as any).aircraftName || "N/A",
+                duration: `${item.hours}h`,
+                requestedDate: new Date(item.startDate).toLocaleDateString(),
+                reason: item.note,
+              } as any}
+
+
+
+              expanded={expandedId === item.$id}
               onToggle={() =>
-                setExpandedId(expandedId === item.id ? null : item.id)
+                setExpandedId(expandedId === item.$id ? null : item.$id)
               }
-              onApprove={() => handleApprove(item.id)}
-              onReject={() => handleReject(item.id)}
+              onApprove={() => handleApprove(item.$id)}
+              onReject={() => handleReject(item.$id)}
+
             />
           )}
+
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           showsVerticalScrollIndicator={false}
         />

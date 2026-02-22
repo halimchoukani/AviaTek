@@ -1,5 +1,6 @@
 import { ID } from "react-native-appwrite";
 import { account, appwriteConfig, databases, teams } from "../appwrite";
+import { AcademyDocument } from "../types";
 import { signIn } from "./auth";
 
 interface RegisterAcademyParams {
@@ -119,6 +120,22 @@ export const getAcademyAdmins = async () => {
     } catch (error) {
         console.error("Error fetching admins:", error);
         throw error;
+    }
+};
+
+export const getAcademyForPilot = async () => {
+    try {
+        const result = await teams.list();
+        if (result.teams.length > 0) {
+            // Assume the first team is the academy
+            const teamId = result.teams[0].$id;
+            const academy = await getAcademyById(teamId);
+            return academy as unknown as AcademyDocument;
+        }
+        return null;
+    } catch (error) {
+        console.error("Error fetching academy for pilot:", error);
+        return null;
     }
 };
 

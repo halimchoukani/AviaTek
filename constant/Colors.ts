@@ -2,6 +2,10 @@ export const STATUS_COLORS = {
   Pending: { bg: "#3A2D14", text: "#F59E0B", border: "#F59E0B" },
   Approved: { bg: "#064E3B", text: "#10B981", border: "#10B981" },
   Rejected: { bg: "#450A0A", text: "#EF4444", border: "#EF4444" },
+  pending: { bg: "#3A2D14", text: "#F59E0B", border: "#F59E0B" },
+  approved: { bg: "#064E3B", text: "#10B981", border: "#10B981" },
+  rejected: { bg: "#450A0A", text: "#EF4444", border: "#EF4444" },
+
 };
 
 export const REQUEST_TYPE_COLORS: Record<string, { text: string; bg: string }> = {
