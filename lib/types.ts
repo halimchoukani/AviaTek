@@ -53,7 +53,13 @@ export interface Pilot {
     emergencyContactPhone?: string;
 }
 
-export interface PilotDocument extends Pilot, Models.Document { }
+export interface PilotDocument extends Pilot, Models.Document {
+    prefs?: {
+        academyId?: string;
+        role?: string;
+        [key: string]: any;
+    };
+}
 
 
 
@@ -89,5 +95,35 @@ export interface Plane {
     maxOccupancy: number;
     location: string;
     images: string[];
+}
+
+
+export enum RequestStatus {
+    Pending = 'pending',
+    Approved = 'approved',
+    Rejected = 'rejected',
+}
+export enum PreferredTimes {
+    Morning = 'morning',
+    Afternoon = 'afternoon' ,
+    Evening = 'evening' ,
+
+}
+
+//requests
+export interface Request {
+    $id: string;
+    pilotId: string;
+    academyId: string;
+    note: string;
+    equipmentId: string;
+    status: RequestStatus;
+    startDate: string; // ISO string with date and time
+    hours: number;
+    preferredTimes: PreferredTimes;
+}
+
+export interface RequestDocument extends Request, Models.Document { }
+
     academy: string;
 }
