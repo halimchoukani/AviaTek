@@ -1,28 +1,34 @@
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useFocusEffect } from "@react-navigation/native";
 import React, { useCallback, useState } from "react";
-import { FlatList, Image, StyleSheet, Text, View } from "react-native";
+import { Image, ScrollView, StyleSheet, Text, View } from "react-native";
 
 import { getPlanes } from "@/lib/api/planes";
 import { getSimulators } from "@/lib/api/simulators";
+import { getCurrentAcademy } from "@/lib/appwrite";
 import { EquipmentStatus, Plane, Simulator } from "@/lib/types";
+import { useSuspenseQuery } from "@tanstack/react-query";
 
 export default function MaterielView() {
     const [planes, setPlanes] = useState<Plane[]>([]);
     const [simulators, setSimulators] = useState<Simulator[]>([]);
+    const { data: academyId, isLoading } = useSuspenseQuery({
+        queryKey: ["academyId"],
+        queryFn: () => getCurrentAcademy()
+    })
 
     const fetchData = useCallback(async () => {
         try {
             const [planesResult, simulatorsResult] = await Promise.all([
-                getPlanes(),
-                getSimulators()
+                getPlanes(academyId!),
+                getSimulators(academyId!)
             ]);
             setPlanes(planesResult);
             setSimulators(simulatorsResult);
         } catch (error) {
-            console.error("Error fetching data:", error);
+            console.error("Error fetching Materiel Resources:", error);
         }
-    }, []);
+    }, [academyId]);
 
     useFocusEffect(
         useCallback(() => {
@@ -31,7 +37,7 @@ export default function MaterielView() {
     );
 
     return (
-        <View style={styles.container}>
+        <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
             {/* Stats Row */}
             <View style={styles.statsRow}>
                 <View style={styles.statsCard}>
@@ -56,11 +62,8 @@ export default function MaterielView() {
                     <FontAwesome5 name="plane" size={14} color="#94A3B8" />
                     <Text style={styles.sectionTitle}>Fleet Status</Text>
                 </View>
-                <FlatList
-                    contentContainerStyle={styles.listContainer}
-                    data={planes}
-                    keyExtractor={(item) => item.$id}
-                    renderItem={({ item: aircraft }) => (
+                <View style={styles.listContainer}>
+                    {planes.map((aircraft) => (
                         <View
                             key={aircraft.$id}
                             style={styles.card}
@@ -134,9 +137,8 @@ export default function MaterielView() {
                                 </View>
                             </View>
                         </View>
-                    )}
-                    showsVerticalScrollIndicator={false}
-                />
+                    ))}
+                </View>
 
             </View>
             <View style={styles.sectionHeader}>
@@ -144,11 +146,8 @@ export default function MaterielView() {
                 <Text style={styles.sectionTitle}>Training Devices</Text>
             </View>
 
-            <FlatList
-                contentContainerStyle={styles.listContainer}
-                data={simulators}
-                keyExtractor={(item) => item.$id}
-                renderItem={({ item: sim }) => (
+            <View style={styles.listContainer}>
+                {simulators.map((sim) => (
                     <View
                         key={sim.$id}
                         style={styles.card}
@@ -192,7 +191,9 @@ export default function MaterielView() {
                                             styles.badgeText,
                                             sim.status === EquipmentStatus.Operational
                                                 ? styles.textGreen
-                                                : styles.textYellow
+                                                : sim.status === EquipmentStatus.Maintenance
+                                                    ? styles.textYellow
+                                                    : styles.textGray
                                         ]}
                                     >
                                         {sim.status}
@@ -210,11 +211,10 @@ export default function MaterielView() {
                             </View>
                         )}
                     </View>
-                )}
-                showsVerticalScrollIndicator={false}
-            />
+                ))}
+            </View>
 
-        </View>
+        </ScrollView>
     );
 }
 
@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
         marginBottom: 16,
     },
     container: {
-        paddingBottom: 24,
+        flex: 1,
     },
     statsRow: {
         flexDirection: "row",

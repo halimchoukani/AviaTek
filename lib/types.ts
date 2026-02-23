@@ -79,6 +79,7 @@ export interface Simulator {
     status: EquipmentStatus;
     maxOccupancy: number;
     images: string[];
+    academy: string;
 }
 
 //Aircraft
@@ -124,3 +125,5 @@ export interface Request {
 
 export interface RequestDocument extends Request, Models.Document { }
 
+    academy: string;
+}
