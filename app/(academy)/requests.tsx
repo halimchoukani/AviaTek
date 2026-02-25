@@ -21,15 +21,15 @@ export default function RequestsScreen() {
   });
 
   const { data: requests = [], isLoading: requestsLoading } = useQuery({
-    queryKey: ['requests', user?.academy, activeFilter],
+    queryKey: ['requests', user?.$id, activeFilter],
     queryFn: () => {
       if (activeFilter === "All") {
-        return getAllRequestsForAcademy(user!.academy);
+        return getAllRequestsForAcademy(user!.prefs.academyId);
       } else {
-        return getRequestsByStatus(user!.academy, activeFilter.toLowerCase() as RequestStatus);
+        return getRequestsByStatus(user!.prefs.academyId, activeFilter.toLowerCase() as RequestStatus);
       }
     },
-    enabled: !!user?.academy,
+    enabled: !!user?.prefs.academyId,
 
   });
 
@@ -137,11 +137,14 @@ export default function RequestsScreen() {
                 licenseId: (item as any).pilotLicense || "",
                 status: (item.status.charAt(0).toUpperCase() + item.status.slice(1)) as any,
                 type: (item as any).type || "Initial",
-
-                aircraft: (item as any).aircraftName || "N/A",
+                sessionType: (item as any).sessionType || "",
+                aircraft: (item as any).equipmentId || "N/A",
+                aircraftId: item.equipmentId,
                 duration: `${item.hours}h`,
                 requestedDate: new Date(item.startDate).toLocaleDateString(),
                 reason: item.note,
+                $createdAt: item.$createdAt,
+                preferredTimes: item.preferredTimes,
               } as any}
 
 

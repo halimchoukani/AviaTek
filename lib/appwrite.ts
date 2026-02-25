@@ -1,4 +1,5 @@
 import { Account, Avatars, Client, Databases, Functions, Query, Teams } from "react-native-appwrite";
+import { AcademyDocument, PilotDocument } from "./types";
 
 export const appwriteConfig = {
     platform: process.env.EXPO_PUBLIC_APPWRITE_PLATFORM ?? "com.jsm.aviatek",
@@ -11,7 +12,6 @@ export const appwriteConfig = {
     requestCollectionId: process.env.EXPO_PUBLIC_APPWRITE_REQUEST_COLLECTION_ID ?? "",
     equipmentCollectionId: process.env.EXPO_PUBLIC_APPWRITE_EQUIPMENT_COLLECTION_ID ?? "equipment",
     simulatorCollectionId: process.env.EXPO_PUBLIC_APPWRITE_SIMULATOR_COLLECTION_ID ?? "simulators",
-    requestCollectionId: process.env.EXPO_PUBLIC_APPWRITE_REQUEST_COLLECTION_ID ?? "requests",
 };
 
 
@@ -37,13 +37,13 @@ export async function getCurrentUser() {
         if (!currentAccount) throw new Error("No current account");
         let currentUser;
         if (currentAccount.prefs.role === "pilot") {
-            currentUser = await databases.listDocuments(
+            currentUser = await databases.listDocuments<PilotDocument>(
                 appwriteConfig.databaseId,
                 appwriteConfig.pilotCollectionId,
                 [Query.equal('$id', currentAccount.$id)]
             );
         } else {
-            currentUser = await databases.listDocuments(
+            currentUser = await databases.listDocuments<AcademyDocument>(
                 appwriteConfig.databaseId,
                 appwriteConfig.academyCollectionId,
                 [Query.equal('$id', currentAccount.prefs.academyId)]

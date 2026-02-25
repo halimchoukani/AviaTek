@@ -1,22 +1,23 @@
-import { getAcademyById } from "@/lib/api/academies";
+import { getAcademyById, getAcademyForPilot } from "@/lib/api/academies";
 import { getPlanes } from "@/lib/api/planes";
 import { sendRequest } from "@/lib/api/requests";
 import { getSimulators } from "@/lib/api/simulators";
 import { getCurrentUser } from "@/lib/appwrite";
 import { AcademyDocument, PilotDocument, Plane, PreferredTimes, Simulator } from "@/lib/types";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
+import RNDateTimePicker from "@react-native-community/datetimepicker";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Alert, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Platform, ScrollView, StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-
 export default function RequestTraining() {
     const router = useRouter();
+    const [open, setOpen] = useState(false);
     const queryClient = useQueryClient();
     const [sessionType, setSessionType] = useState<"flight" | "simulator">("flight");
     const [selectedEquipment, setSelectedEquipment] = useState<string | null>(null);
-    const [date, setDate] = useState("");
+    const [date, setDate] = useState(new Date());
     const [hours, setHours] = useState("2");
     const [notes, setNotes] = useState("");
     const [preferredTimes, setPreferredTimes] = useState<PreferredTimes>(PreferredTimes.Morning);
@@ -28,9 +29,16 @@ export default function RequestTraining() {
     });
 
     const { data: academy, isLoading: isLoadingAcademy } = useQuery({
-        queryKey: ["academy", user?.academy],
-        queryFn: () => getAcademyById(user!.academy) as unknown as Promise<AcademyDocument>,
-        enabled: !!user?.academy,
+        queryKey: ["academy", user?.$id],
+        queryFn: async () => {
+            if (!user) return null;
+            const academyId = user.academy || user.prefs?.academyId;
+            if (academyId) {
+                return await getAcademyById(academyId) as unknown as AcademyDocument;
+            }
+            return await getAcademyForPilot();
+        },
+        enabled: !!user,
     });
 
     const { data: planes = [], isLoading: isLoadingPlanes } = useQuery({
@@ -99,12 +107,13 @@ export default function RequestTraining() {
 
         submitRequest({
             pilotId: user.$id,
-            academyId: academy?.$id || user.academy || "",
+            academyId: academy?.$id || user.academy || user.prefs?.academyId || "",
             equipmentId: selectedEquipment,
             note: notes,
-            startDate: date,
+            startDate: date.toISOString().split('T')[0],
             hours: parseFloat(hours) || 0,
             preferredTimes: preferredTimes,
+            sessionType: sessionType,
         });
     };
 
@@ -167,17 +176,23 @@ export default function RequestTraining() {
                             style={[styles.aircraftItem, selectedEquipment === item.$id && styles.aircraftItemActive]}
                             onPress={() => setSelectedEquipment(item.$id)}
                         >
-                            <View>
-                                <Text style={styles.aircraftName}>
-                                    {sessionType === "flight"
-                                        ? (item as Plane).name
-                                        : (item as Simulator).simulatorModel}
-                                </Text>
-                                <Text style={styles.aircraftId}>
-                                    {sessionType === "flight"
-                                        ? (item as Plane).modelNumber
-                                        : (item as Simulator).location}
-                                </Text>
+                            <View style={styles.aircraftItemContent}>
+                                <Image
+                                    source={{ uri: item.images[0] }}
+                                    style={styles.aircraftImage}
+                                />
+                                <View>
+                                    <Text style={styles.aircraftName}>
+                                        {sessionType === "flight"
+                                            ? (item as Plane).name
+                                            : (item as Simulator).simulatorModel}
+                                    </Text>
+                                    <Text style={styles.aircraftId}>
+                                        {sessionType === "flight"
+                                            ? (item as Plane).modelNumber
+                                            : (item as Simulator).location}
+                                    </Text>
+                                </View>
                             </View>
                         </TouchableOpacity>
                     ))
@@ -202,16 +217,39 @@ export default function RequestTraining() {
                 <View style={styles.inputRow}>
                     <View style={{ flex: 1, marginRight: 15 }}>
                         <Text style={styles.label}>Preferred Date *</Text>
-                        <View style={styles.inputContainer}>
-                            <TextInput
-                                placeholder="mm/dd/yyyy"
-                                placeholderTextColor="#475569"
-                                style={styles.textInput}
+
+                        <TouchableOpacity
+                            style={styles.inputContainer}
+                            onPress={() => setOpen(true)}
+                            activeOpacity={0.7}
+                        >
+                            <Text style={styles.dateText}>
+                                {date.toLocaleDateString('en-US', {
+                                    month: 'short',
+                                    day: 'numeric',
+                                    year: 'numeric'
+                                })}
+                            </Text>
+                            <Feather name="calendar" size={18} color="#C9A961" />
+                        </TouchableOpacity>
+
+                        {open && (
+                            <RNDateTimePicker
+                                mode="date"
                                 value={date}
-                                onChangeText={setDate}
+                                onChange={(event, selectedDate) => {
+                                    if (Platform.OS === 'android') {
+                                        setOpen(false);
+                                    }
+                                    if (selectedDate) {
+                                        setDate(selectedDate);
+                                    }
+                                }}
+                                display={Platform.OS === 'ios' ? 'inline' : 'default'}
+                                minimumDate={new Date()}
+                                themeVariant="dark"
                             />
-                            <Feather name="calendar" size={18} color="#94A3B8" />
-                        </View>
+                        )}
                     </View>
                     <View style={{ width: 120 }}>
                         <Text style={styles.label}>Hours Needed</Text>
@@ -369,6 +407,11 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 4,
     },
+    aircraftItemContent: {
+        flexDirection: "row",
+        alignItems: "flex-start",
+        gap: 10,
+    },
     aircraftItem: {
         backgroundColor: "#1E293B",
         borderRadius: 12,
@@ -376,6 +419,11 @@ const styles = StyleSheet.create({
         marginBottom: 12,
         borderWidth: 1,
         borderColor: "#334155",
+    },
+    aircraftImage: {
+        width: "40%",
+        height: 100,
+        borderRadius: 12,
     },
     aircraftItemActive: {
         borderColor: "#4F5E7B",
@@ -448,6 +496,12 @@ const styles = StyleSheet.create({
         borderColor: "#334155",
     },
     textInput: {
+        flex: 1,
+        color: "#FFFFFF",
+        fontSize: 16,
+        padding: 0, // Remove default padding for better alignment
+    },
+    dateText: {
         flex: 1,
         color: "#FFFFFF",
         fontSize: 16,

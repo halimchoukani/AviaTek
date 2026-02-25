@@ -1,7 +1,7 @@
 import { ID, Permission, Query, Role } from "react-native-appwrite";
 
 import { appwriteConfig, databases } from "../appwrite";
-import { Request as PilotRequest, Request, RequestStatus } from "../types";
+import { Request as PilotRequest, RequestDocument, RequestStatus } from "../types";
 
 /**
  * Sends a training request from a pilot to an academy.
@@ -97,7 +97,7 @@ const enrichRequestsWithDetails = async (requests: any[]): Promise<any[]> => {
 
 export const getAllRequestsForAcademy = async (
     academyId: string
-): Promise<Request[]> => {
+): Promise<RequestDocument[]> => {
     try {
         const response = await databases.listDocuments(
             appwriteConfig.databaseId,
@@ -106,7 +106,7 @@ export const getAllRequestsForAcademy = async (
         );
 
         const enriched = await enrichRequestsWithDetails(response.documents);
-        return enriched as unknown as Request[];
+        return enriched as unknown as RequestDocument[];
     } catch (error) {
         console.error("Error fetching academy requests:", error);
         throw error;
@@ -144,7 +144,7 @@ export const updateRequestStatus = async (
 export const getRequestsByStatus = async (
     academyId: string,
     status: RequestStatus
-): Promise<Request[]> => {
+): Promise<RequestDocument[]> => {
     try {
         const response = await databases.listDocuments(
             appwriteConfig.databaseId,
@@ -153,7 +153,7 @@ export const getRequestsByStatus = async (
         );
 
         const enriched = await enrichRequestsWithDetails(response.documents);
-        return enriched as unknown as Request[];
+        return enriched as unknown as RequestDocument[];
     } catch (error) {
         console.error(
             `Error fetching academy requests with status ${status}:`,

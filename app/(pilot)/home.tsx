@@ -1,8 +1,8 @@
-import { getAcademyById } from "@/lib/api/academies";
+import { getAcademyById, getAcademyForPilot } from "@/lib/api/academies";
 import { getCurrentUser } from "@/lib/appwrite";
 import { AcademyDocument, PilotDocument } from "@/lib/types";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
 import React from "react";
 import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
@@ -12,15 +12,24 @@ export default function PilotHome() {
     const router = useRouter();
 
 
-    const { data: user, isFetching: isFetchingCurrentUser } = useSuspenseQuery({
+    const { data: user } = useSuspenseQuery({
         queryKey: ["currentUser"],
         queryFn: () => getCurrentUser() as unknown as Promise<PilotDocument>,
     })
-    const { data: academy, isFetching: isFetchingAcademy } = useSuspenseQuery({
-        queryKey: ["academy", user.academy],
-        queryFn: () => getAcademyById(user.academy) as unknown as Promise<AcademyDocument>,
+
+    const { data: academy, isLoading: isFetchingAcademy } = useQuery({
+        queryKey: ["academy", user?.$id],
+        queryFn: async () => {
+            if (!user) return null;
+            const academyId = user.academy || user.prefs?.academyId;
+            if (academyId) {
+                return await getAcademyById(academyId) as unknown as AcademyDocument;
+            }
+            return await getAcademyForPilot();
+        },
+        enabled: !!user,
     })
-    if (isFetchingCurrentUser || isFetchingAcademy) {
+    if (isFetchingAcademy) {
         return (
             <SafeAreaView style={styles.container}>
                 <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
@@ -29,7 +38,15 @@ export default function PilotHome() {
             </SafeAreaView>
         );
     }
-
+    if (academy === null) {
+        return (
+            <SafeAreaView style={styles.container}>
+                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                    <Text style={styles.userName}>No Academy Assigned</Text>
+                </View>
+            </SafeAreaView>
+        );
+    }
     return (
         <SafeAreaView style={styles.container}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>

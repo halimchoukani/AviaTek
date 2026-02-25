@@ -90,6 +90,10 @@ export async function registerAcademy(params: RegisterAcademyParams) {
 }
 
 export async function getAcademyById(id: string) {
+    if (!id) {
+        console.log("getAcademyById: No ID provided");
+        return null;
+    }
     try {
         const academy = await databases.getDocument(
             appwriteConfig.databaseId,

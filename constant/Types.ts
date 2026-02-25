@@ -16,6 +16,8 @@ export interface Request {
   preferredTimes?: string;
   reason?: string;
   isUrgent?: boolean;
+  sessionType: string;
+  $createdAt?: string;
 }
 
 export interface Course {

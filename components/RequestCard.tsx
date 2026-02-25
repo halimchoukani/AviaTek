@@ -1,6 +1,10 @@
 import { REQUEST_TYPE_COLORS, STATUS_COLORS } from "@/constant/Colors";
 import { Request } from "@/constant/Types";
+import { getPlaneById } from "@/lib/api/planes";
+import { getSimulatorById } from "@/lib/api/simulators";
+import { Plane, Simulator } from "@/lib/types";
 import { Feather } from "@expo/vector-icons";
+import { useSuspenseQuery } from "@tanstack/react-query";
 import {
   Pressable,
   StyleSheet,
@@ -25,7 +29,16 @@ export default function RequestCard({
   const statusColors = STATUS_COLORS[request.status];
   const typeColors =
     REQUEST_TYPE_COLORS[request.type] || REQUEST_TYPE_COLORS["Recurrency"];
-
+  const { data: aircraft } = useSuspenseQuery<Plane | Simulator>({
+    queryKey: ["equipment", request.aircraftId],
+    queryFn: async () => {
+      if (request.sessionType === "flight") {
+        return await getPlaneById(request.aircraftId!);
+      } else {
+        return await getSimulatorById(request.aircraftId!);
+      }
+    },
+  });
   return (
     <View style={styles.card}>
       <Pressable onPress={onToggle}>
@@ -76,7 +89,13 @@ export default function RequestCard({
                 color="#EAB308"
                 style={{ transform: [{ rotate: "-45deg" }], marginRight: 6 }}
               />
-              <Text style={styles.subtleText}>{request.aircraft}</Text>
+              <Text style={styles.subtleText}>
+                {aircraft
+                  ? request.sessionType === "flight"
+                    ? (aircraft as Plane).name
+                    : (aircraft as Simulator).simulatorModel
+                  : request.aircraft}
+              </Text>
             </View>
 
             <View
@@ -108,7 +127,13 @@ export default function RequestCard({
           <View style={styles.grid}>
             <View style={styles.gridItem}>
               <Text style={styles.label}>Aircraft</Text>
-              <Text style={styles.value}>{request.aircraftId || "N/A"}</Text>
+              <Text style={styles.value}>
+                {aircraft
+                  ? request.sessionType === "flight"
+                    ? (aircraft as Plane).name
+                    : (aircraft as Simulator).simulatorModel
+                  : request.aircraftId || "N/A"}
+              </Text>
             </View>
 
             <View style={styles.gridItem}>
@@ -125,7 +150,11 @@ export default function RequestCard({
 
             <View style={styles.gridItem}>
               <Text style={styles.label}>Submitted</Text>
-              <Text style={styles.value}>{request.submittedDate || "N/A"}</Text>
+              <Text style={styles.value}>
+                {request.$createdAt
+                  ? new Date(request.$createdAt).toLocaleDateString()
+                  : "N/A"}
+              </Text>
             </View>
           </View>
 

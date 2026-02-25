@@ -47,3 +47,17 @@ export const createSimulator = async (simulator: Omit<Simulator, "$id">): Promis
         throw error;
     }
 };
+
+export const getSimulatorById = async (id: string): Promise<Simulator> => {
+    try {
+        const result = await databases.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.simulatorCollectionId,
+            id
+        );
+        return result as unknown as Simulator;
+    } catch (error) {
+        console.error("Error fetching simulator:", error);
+        throw error;
+    }
+};

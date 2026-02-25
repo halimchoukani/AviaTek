@@ -47,3 +47,17 @@ export const createPlane = async (plane: Omit<Plane, "$id">): Promise<Plane> => 
         throw error;
     }
 };
+
+export const getPlaneById = async (id: string): Promise<Plane> => {
+    try {
+        const result = await databases.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.equipmentCollectionId,
+            id
+        );
+        return result as unknown as Plane;
+    } catch (error) {
+        console.error("Error fetching plane:", error);
+        throw error;
+    }
+};

@@ -1,24 +1,18 @@
-import { useEffect } from "react";
+import { signOut } from "@/lib/appwrite";
 import { router } from "expo-router";
-import { View, ActivityIndicator } from "react-native";
-import { signOut } from "@/lib/appwrite";
-
-import { signOut } from "@/lib/appwrite";
+import { useEffect } from "react";
+import { ActivityIndicator, View } from "react-native";
 
 export default function Exit() {
   useEffect(() => {
     const logout = async () => {
       try {
-        // 🔥 destroy Appwrite session
         await signOut();
-
-        // redirect to login
         router.replace("/(auth)/sign-in");
       } catch (error) {
         console.log("Logout error:", error);
       }
     };
-
     logout();
   }, []);
 

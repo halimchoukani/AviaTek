@@ -120,6 +120,7 @@ export interface Request {
     startDate: string; // ISO string with date and time
     hours: number;
     preferredTimes: PreferredTimes;
+    sessionType: string;
 }
 
 export interface RequestDocument extends Request, Models.Document { }

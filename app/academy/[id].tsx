@@ -11,17 +11,17 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function AcademyProfile() {
     const { id } = useLocalSearchParams<{ id: string }>();
-    const { data: academy, isLoading: academyLoading, error: academyError } = useSuspenseQuery({
+    const { data: academy } = useSuspenseQuery({
         queryKey: ['academy', id],
-        queryFn: () => getAcademyById(id),
+        queryFn: () => getAcademyById(id!),
     });
-    const { data: pilots, isLoading: pilotsLoading, error: pilotsError } = useSuspenseQuery({
+    const { data: pilots } = useSuspenseQuery({
         queryKey: ['pilots', academy?.$id],
-        queryFn: () => getPilotsByAcademy(academy?.$id),
+        queryFn: () => getPilotsByAcademy(academy!.$id),
     });
-    const { data: planes, isLoading: planeLoading, error: planeErorr } = useSuspenseQuery({
+    const { data: planes } = useSuspenseQuery({
         queryKey: ['planes', academy?.$id],
-        queryFn: () => getPlanes(academy?.$id),
+        queryFn: () => getPlanes(academy!.$id),
     });
     const router = useRouter();
     const [orgName, setOrgName] = useState(academy?.name);
