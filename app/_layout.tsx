@@ -4,8 +4,9 @@ import { Stack } from "expo-router";
 import { useEffect } from "react";
 import "../global.css";
 
+const queryClient = new QueryClient();
+
 export default function RootLayout() {
-  const queryClient = new QueryClient();
 
   useEffect(() => {
     const hideNavigationBar = async () => {

@@ -1,45 +1,73 @@
 import RequestCard from "@/components/RequestCard";
 import StatsCard from "@/components/StatsCard";
-import { MOCK_REQUESTS } from "@/constant/Variables";
+import { getAllRequestsForAcademy, getRequestsByStatus, updateRequestStatus } from "@/lib/api/requests";
+import { getCurrentUser } from "@/lib/appwrite";
+import { RequestStatus } from "@/lib/types";
 import { Feather } from "@expo/vector-icons";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import React, { useState } from "react";
-import {
-  FlatList,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-  View
-} from "react-native";
-import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
+import { ActivityIndicator, FlatList, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 export default function RequestsScreen() {
-  const insets = useSafeAreaInsets();
+  const queryClient = useQueryClient();
   const [activeFilter, setActiveFilter] = useState("All");
-  const [expandedId, setExpandedId] = useState<string | null>("0"); // Start with first expanded as per design
-  const [requests, setRequests] = useState(MOCK_REQUESTS);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+
+  // Queries
+  const { data: user, isLoading: userLoading } = useQuery({
+    queryKey: ['currentUser'],
+    queryFn: getCurrentUser,
+  });
+
+  const { data: requests = [], isLoading: requestsLoading } = useQuery({
+    queryKey: ['requests', user?.academy, activeFilter],
+    queryFn: () => {
+      if (activeFilter === "All") {
+        return getAllRequestsForAcademy(user!.academy);
+      } else {
+        return getRequestsByStatus(user!.academy, activeFilter.toLowerCase() as RequestStatus);
+      }
+    },
+    enabled: !!user?.academy,
+
+  });
+
+  // Mutations
+  const { mutate: updateStatus } = useMutation({
+    mutationFn: ({ id, status }: { id: string, status: RequestStatus }) => updateRequestStatus(id, status),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['requests'] });
+    },
+    onError: (error) => {
+      console.error("Error updating request status:", error);
+    }
+  });
 
   const stats = {
     total: requests.length,
-    approved: requests.filter(r => r.status === "Approved").length,
-    pending: requests.filter(r => r.status === "Pending").length,
+    approved: requests.filter(r => r.status === RequestStatus.Approved).length,
+    pending: requests.filter(r => r.status === RequestStatus.Pending).length,
   };
 
   const handleApprove = (id: string) => {
-    setRequests(prev => prev.map(req =>
-      req.id === id ? { ...req, status: "Approved" as const } : req
-    ));
+    updateStatus({ id, status: RequestStatus.Approved });
   };
 
   const handleReject = (id: string) => {
-    setRequests(prev => prev.map(req =>
-      req.id === id ? { ...req, status: "Rejected" as const } : req
-    ));
+    updateStatus({ id, status: RequestStatus.Rejected });
   };
 
-  const filteredRequests = requests.filter((req) => {
-    if (activeFilter === "All") return true;
-    return req.status === activeFilter;
-  });
+  if (userLoading || requestsLoading) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+          <ActivityIndicator size="large" color="#C9A961" />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
 
   return (
     <SafeAreaView style={styles.container}>
@@ -97,20 +125,37 @@ export default function RequestsScreen() {
         </>
         <FlatList
           style={styles.list}
-          data={filteredRequests}
-          keyExtractor={(item) => item.id}
+          data={requests}
+          keyExtractor={(item) => (item as any).$id}
           contentContainerStyle={styles.listContent}
           renderItem={({ item }) => (
             <RequestCard
-              request={item}
-              expanded={expandedId === item.id}
+              request={{
+                id: item.$id,
+                name: (item as any).pilotName || "Unknown Pilot",
+                rank: (item as any).pilotRank || "",
+                licenseId: (item as any).pilotLicense || "",
+                status: (item.status.charAt(0).toUpperCase() + item.status.slice(1)) as any,
+                type: (item as any).type || "Initial",
+
+                aircraft: (item as any).aircraftName || "N/A",
+                duration: `${item.hours}h`,
+                requestedDate: new Date(item.startDate).toLocaleDateString(),
+                reason: item.note,
+              } as any}
+
+
+
+              expanded={expandedId === item.$id}
               onToggle={() =>
-                setExpandedId(expandedId === item.id ? null : item.id)
+                setExpandedId(expandedId === item.$id ? null : item.$id)
               }
-              onApprove={() => handleApprove(item.id)}
-              onReject={() => handleReject(item.id)}
+              onApprove={() => handleApprove(item.$id)}
+              onReject={() => handleReject(item.$id)}
+
             />
           )}
+
           ItemSeparatorComponent={() => <View style={styles.separator} />}
           showsVerticalScrollIndicator={false}
         />
@@ -206,6 +251,3 @@ const styles = StyleSheet.create({
     height: 16,
   },
 });
-
-
-

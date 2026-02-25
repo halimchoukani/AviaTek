@@ -10,6 +10,7 @@ export const appwriteConfig = {
     userCollectionId: process.env.EXPO_PUBLIC_APPWRITE_USER_COLLECTION_ID ?? "",
     equipmentCollectionId: process.env.EXPO_PUBLIC_APPWRITE_EQUIPMENT_COLLECTION_ID ?? "equipment",
     simulatorCollectionId: process.env.EXPO_PUBLIC_APPWRITE_SIMULATOR_COLLECTION_ID ?? "simulators",
+    requestCollectionId: process.env.EXPO_PUBLIC_APPWRITE_REQUEST_COLLECTION_ID ?? "requests",
 };
 
 const client = new Client()

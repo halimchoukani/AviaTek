@@ -91,3 +91,30 @@ export interface Plane {
     images: string[];
     academy: string;
 }
+
+export enum RequestStatus {
+    Pending = 'pending',
+    Approved = 'approved',
+    Rejected = 'rejected',
+}
+export enum PreferredTimes {
+    Morning = 'morning',
+    Afternoon = 'afternoon',
+    Evening = 'evening',
+
+}
+
+//requests
+export interface Request {
+    $id: string;
+    pilotId: string;
+    academyId: string;
+    note: string;
+    equipmentId: string;
+    status: RequestStatus;
+    startDate: string; // ISO string with date and time
+    hours: number;
+    preferredTimes: PreferredTimes;
+}
+
+export interface RequestDocument extends Request, Models.Document { }
