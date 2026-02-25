@@ -460,7 +460,6 @@ const styles = StyleSheet.create({
     timeBox: {
         width: '31%',
         backgroundColor: "#1E293B",
-
         borderRadius: 12,
         padding: 12,
         alignItems: "center",

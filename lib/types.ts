@@ -53,7 +53,13 @@ export interface Pilot {
     emergencyContactPhone?: string;
 }
 
-export interface PilotDocument extends Pilot, Models.Document { }
+export interface PilotDocument extends Pilot, Models.Document {
+    prefs?: {
+        academyId?: string;
+        role?: string;
+        [key: string]: any;
+    };
+}
 
 
 
@@ -89,7 +95,6 @@ export interface Plane {
     maxOccupancy: number;
     location: string;
     images: string[];
-    academy: string;
 }
 
 export enum RequestStatus {

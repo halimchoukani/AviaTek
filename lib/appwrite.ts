@@ -8,10 +8,12 @@ export const appwriteConfig = {
     pilotCollectionId: process.env.EXPO_PUBLIC_APPWRITE_PILOT_COLLECTION_ID ?? "",
     academyCollectionId: process.env.EXPO_PUBLIC_APPWRITE_ACADEMY_COLLECTION_ID ?? "",
     userCollectionId: process.env.EXPO_PUBLIC_APPWRITE_USER_COLLECTION_ID ?? "",
+    requestCollectionId: process.env.EXPO_PUBLIC_APPWRITE_REQUEST_COLLECTION_ID ?? "",
     equipmentCollectionId: process.env.EXPO_PUBLIC_APPWRITE_EQUIPMENT_COLLECTION_ID ?? "equipment",
     simulatorCollectionId: process.env.EXPO_PUBLIC_APPWRITE_SIMULATOR_COLLECTION_ID ?? "simulators",
     requestCollectionId: process.env.EXPO_PUBLIC_APPWRITE_REQUEST_COLLECTION_ID ?? "requests",
 };
+
 
 const client = new Client()
     .setProject(appwriteConfig.projectId)
@@ -51,7 +53,13 @@ export async function getCurrentUser() {
 
         if (!currentUser.documents.length) throw new Error("User not found in pilot collection");
 
-        return currentUser.documents[0];
+        const userDoc = currentUser.documents[0];
+
+        // Attach prefs to the document so they can be accessed in the UI
+        return {
+            ...userDoc,
+            prefs: currentAccount.prefs
+        };
     } catch (error) {
         console.log("Error getting current user session:", error);
         return null;

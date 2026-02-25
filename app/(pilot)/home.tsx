@@ -11,6 +11,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 export default function PilotHome() {
     const router = useRouter();
 
+
     const { data: user, isFetching: isFetchingCurrentUser } = useSuspenseQuery({
         queryKey: ["currentUser"],
         queryFn: () => getCurrentUser() as unknown as Promise<PilotDocument>,
@@ -517,4 +518,5 @@ const styles = StyleSheet.create({
         fontSize: 14,
         fontWeight: "500",
     },
+
 });
