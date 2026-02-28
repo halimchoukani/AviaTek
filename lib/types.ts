@@ -122,6 +122,7 @@ export interface Request {
     hours: number;
     preferredTimes: PreferredTimes;
     sessionType: string;
+    response?: string;
 }
 
 export interface RequestDocument extends Request, Models.Document { }

@@ -162,3 +162,25 @@ export const getRequestsByStatus = async (
         throw error;
     }
 };
+
+/**
+ * Fetches all training requests for a specific pilot.
+ * @param pilotId The ID of the pilot
+ */
+export const getRequestsByPilot = async (
+    pilotId: string
+): Promise<RequestDocument[]> => {
+    try {
+        const response = await databases.listDocuments(
+            appwriteConfig.databaseId,
+            appwriteConfig.requestCollectionId,
+            [Query.equal("pilotId", pilotId), Query.orderDesc("$createdAt")]
+        );
+
+        const enriched = await enrichRequestsWithDetails(response.documents);
+        return enriched as unknown as RequestDocument[];
+    } catch (error) {
+        console.error("Error fetching pilot requests:", error);
+        throw error;
+    }
+};
