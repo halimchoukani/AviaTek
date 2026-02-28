@@ -1,4 +1,3 @@
-import { Request } from "./Types";
 
 export const PILOTS: any[] = [
   {
@@ -35,65 +34,7 @@ export const PILOTS: any[] = [
   },
 ];
 
-export const MOCK_REQUESTS: Request[] = [
-  {
-    id: "1",
-    name: "Sarah Chen",
-    rank: "Capt.",
-    licenseId: "ATPL-9921-CN",
-    status: "Pending",
-    type: "Type Rating",
-    aircraft: "Diamond DA42",
-    aircraftId: "N77321",
-    duration: "15h",
-    requestedDate: "2024-02-15",
-    submittedDate: "2024-02-01",
-    preferredTimes: "Morning, Afternoon",
-    reason: "Multi-engine type rating for commercial operations expansion",
-  },
-  {
-    id: "2",
-    name: "Marcus Rodriguez",
-    rank: "FO.",
-    licenseId: "CPL-4421-MX",
-    status: "Pending",
-    type: "Recurrency",
-    aircraft: "Cessna 172S",
-    duration: "2h",
-    isUrgent: true,
-  },
-  {
-    id: "3",
-    name: "James Wilson",
-    rank: "Std.",
-    licenseId: "SPL-1102-UK",
-    status: "Approved",
-    type: "Checkout",
-    aircraft: "Piper PA-28",
-    duration: "5h",
-  },
-  {
-    id: "4",
-    name: "Elena Popov",
-    rank: "FO.",
-    licenseId: "CPL-3391-RU",
-    status: "Rejected",
-    type: "Proficiency",
-    aircraft: "Cessna 152",
-    duration: "3h",
-  },
-  {
-    id: "5",
-    name: "David Park",
-    rank: "Capt.",
-    licenseId: "ATPL-5567-KR",
-    status: "Pending",
-    type: "Initial",
-    aircraft: "Diamond DA42",
-    duration: "20h",
-    isUrgent: true,
-  },
-];
+
 
 export const COURSES_DATA = [
   {

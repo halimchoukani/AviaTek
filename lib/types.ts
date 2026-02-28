@@ -95,6 +95,7 @@ export interface Plane {
     maxOccupancy: number;
     location: string;
     images: string[];
+    academy: string;
 }
 
 export enum RequestStatus {
@@ -124,3 +125,17 @@ export interface Request {
 }
 
 export interface RequestDocument extends Request, Models.Document { }
+
+
+//all users
+export interface User {
+    $id: string;
+    name: string;
+    lastname: string;
+    email: string;
+    prefs?: {
+        academyId?: string;
+        role?: string;
+        [key: string]: any;
+    };
+}

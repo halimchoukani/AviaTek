@@ -47,5 +47,8 @@ export default function Index() {
   if (role === "pilot") {
     return <Redirect href="/(pilot)/home" />;
   }
+  if (role === "admin") {
+    return <Redirect href={"/(admin)" as any} />;
+  }
   return <Redirect href="/(academy)/home" />;
 }

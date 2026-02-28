@@ -43,17 +43,24 @@ export async function getCurrentUser() {
                 [Query.equal('$id', currentAccount.$id)]
             );
         } else {
-            currentUser = await databases.listDocuments<AcademyDocument>(
-                appwriteConfig.databaseId,
-                appwriteConfig.academyCollectionId,
-                [Query.equal('$id', currentAccount.prefs.academyId)]
-            );
+            if (currentAccount.prefs.role === "academy") {
+                currentUser = await databases.listDocuments<AcademyDocument>(
+                    appwriteConfig.databaseId,
+                    appwriteConfig.academyCollectionId,
+                    [Query.equal('$id', currentAccount.prefs.academyId)]
+                );
+            } else {
+                currentUser = {
+                    documents: [currentAccount]
+                };
+            }
+
         }
 
 
-        if (!currentUser.documents.length) throw new Error("User not found in pilot collection");
+        if (!currentUser?.documents?.length) throw new Error("User not found in pilot collection");
 
-        const userDoc = currentUser.documents[0];
+        const userDoc = currentUser?.documents?.[0];
 
         // Attach prefs to the document so they can be accessed in the UI
         return {
