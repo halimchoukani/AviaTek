@@ -1,11 +1,9 @@
 import api from "../admin-config";
 import { User } from "../types";
 
-
-
 export const getAllUsers = async () => {
     try {
-        const response = await api.get('/users')
+        const response = await api.get('/users');
         return response.data.users as User[];
     } catch (error) {
         console.log(error);

@@ -26,6 +26,16 @@ export const teams = new Teams(client);
 export const avatars = new Avatars(client);
 export const functions = new Functions(client);
 
+export async function createJWT() {
+    try {
+        const jwtResponse = await account.createJWT();
+        return jwtResponse.jwt;
+    } catch (error) {
+        console.error("Error creating JWT:", error);
+        return null;
+    }
+}
+
 export default client;
 
 
