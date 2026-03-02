@@ -56,7 +56,7 @@ export default function PilotHome() {
                         <Text style={styles.welcomeText}>Welcome back</Text>
                         <Text style={styles.userName}>{user?.name ? `${user.name} ${user.lastname}` : "Capt. Pilot"}</Text>
                     </View>
-                    <TouchableOpacity style={styles.notificationBtn}>
+                    <TouchableOpacity style={styles.notificationBtn} onPress={() => router.push("/notifications")}>
                         <Feather name="bell" size={24} color="#FFFFFF" />
                         <View style={styles.notificationDot} />
                     </TouchableOpacity>
@@ -151,46 +151,7 @@ export default function PilotHome() {
                     </TouchableOpacity>
                 </View>
 
-                {/* Recent Alerts */}
-                <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Recent Alerts</Text>
-                    <TouchableOpacity style={styles.viewAllBtn}>
-                        <Text style={styles.viewAllText}>View all</Text>
-                        <Feather name="chevron-right" size={16} color="#C9A961" />
-                    </TouchableOpacity>
-                </View>
 
-                <View style={styles.alertCard}>
-                    <View style={styles.alertIconCircleSuccess}>
-                        <Feather name="check-circle" size={20} color="#10B981" />
-                    </View>
-                    <View style={styles.alertContent}>
-                        <Text style={styles.alertTitle}>Training Request Approved</Text>
-                        <Text style={styles.alertSub}>DA42 type rating — starts Feb 15</Text>
-                    </View>
-                    <Text style={styles.alertTime}>2h</Text>
-                </View>
-
-                <View style={styles.alertCard}>
-                    <View style={styles.alertIconCircleWarning}>
-                        <Feather name="alert-triangle" size={20} color="#F59E0B" />
-                    </View>
-                    <View style={styles.alertContent}>
-                        <Text style={styles.alertTitle}>Medical Expiring Soon</Text>
-                        <Text style={styles.alertSub}>Class 1 — Aug 20, 2025</Text>
-                    </View>
-                    <Text style={styles.alertTime}>5h</Text>
-                </View>
-
-                <View style={styles.footer}>
-                    <View style={styles.systemStatusRow}>
-                        <Text style={styles.systemStatusLabel}>System Status</Text>
-                        <View style={styles.operationalBadge}>
-                            <View style={styles.operationalDot} />
-                            <Text style={styles.operationalText}>Operational</Text>
-                        </View>
-                    </View>
-                </View>
             </ScrollView>
         </SafeAreaView>
     );
