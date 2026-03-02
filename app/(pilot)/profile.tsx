@@ -137,7 +137,7 @@ export default function PilotProfile() {
                             <Text style={styles.avatarText}>{initials}</Text>
                         </View>
                         <Text style={styles.headerName}>
-                            Capt. {firstName} {lastName}
+                            {firstName} {lastName}
                         </Text>
                         <Text style={styles.headerLicense}>
                             {licenseNumber || "No License Set"}

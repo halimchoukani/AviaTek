@@ -38,14 +38,21 @@ export default function PilotLayout() {
                 name="requests"
                 options={{
                     title: "Requests",
-                    tabBarIcon: ({ color }) => <Feather name="calendar" size={24} color={color} />,
+                    tabBarIcon: ({ color }) => <Feather name="send" size={24} color={color} />,
+                }}
+            />
+            <Tabs.Screen
+                name="sessions"
+                options={{
+                    title: "Sessions",
+                    tabBarIcon: ({ color }) => <Feather name="book-open" size={24} color={color} />,
                 }}
             />
             <Tabs.Screen
                 name="profile"
                 options={{
                     title: "Profile",
-                    tabBarIcon: ({ color }) => <Feather name="calendar" size={24} color={color} />,
+                    tabBarIcon: ({ color }) => <Feather name="user" size={24} color={color} />,
                 }}
             />
             <Tabs.Screen

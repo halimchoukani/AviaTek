@@ -54,7 +54,7 @@ export default function PilotHome() {
                 <View style={styles.header}>
                     <View>
                         <Text style={styles.welcomeText}>Welcome back</Text>
-                        <Text style={styles.userName}>{user?.name ? `Capt. ${user.name} ${user.lastname}` : "Capt. Pilot"}</Text>
+                        <Text style={styles.userName}>{user?.name ? `${user.name} ${user.lastname}` : "Capt. Pilot"}</Text>
                     </View>
                     <TouchableOpacity style={styles.notificationBtn}>
                         <Feather name="bell" size={24} color="#FFFFFF" />
@@ -74,7 +74,7 @@ export default function PilotHome() {
                         </View>
                     </View>
 
-                    <Text style={styles.profileName}>{user?.name ? `Capt. ${user.name} ${user.lastname}` : "Capt. Pilot"}</Text>
+                    <Text style={styles.profileName}>{user?.name ? `${user.name} ${user.lastname}` : "Capt. Pilot"}</Text>
                     <Text style={styles.academyName}>{academy?.name || "No Academy Assigned"}</Text>
 
                     <View style={styles.divider} />

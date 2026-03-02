@@ -127,6 +127,11 @@ export interface Request {
 
 export interface RequestDocument extends Request, Models.Document { }
 
+export enum ScheduleStatus {
+    Confirmed = 'confirmed',
+    Pending = 'pending',
+}
+
 // Schedules
 export interface Schedule {
     $id: string;
@@ -135,6 +140,7 @@ export interface Schedule {
     notes: string;
     equipmentId: string;
     sessionType: string;
+    status: ScheduleStatus;
     academyId: string;
     pilotId: string;
 }
