@@ -30,6 +30,7 @@ export default function RequestsScreen() {
       }
     },
     enabled: !!user?.prefs.academyId,
+    refetchInterval: 2000,
 
   });
 

@@ -115,6 +115,8 @@ export const getAllRequestsForAcademy = async (
 
 /**
  * Updates the status of a training request.
+ * When the status is "approved", a new schedule is automatically
+ * created in the schedules collection based on the request data.
  * @param requestId The ID of the request to update
  * @param status The new status (approved, rejected)
  */
@@ -123,12 +125,52 @@ export const updateRequestStatus = async (
     status: RequestStatus
 ) => {
     try {
+        // If approving, fetch the full request first so we can create a schedule
+        let requestDoc: any = null;
+        if (status === RequestStatus.Approved) {
+            requestDoc = await databases.getDocument(
+                appwriteConfig.databaseId,
+                appwriteConfig.requestCollectionId,
+                requestId
+            );
+        }
+
+        // Update the request status
         const result = await databases.updateDocument(
             appwriteConfig.databaseId,
             appwriteConfig.requestCollectionId,
             requestId,
             { status }
         );
+
+        // Create a schedule when the request is approved
+        if (status === RequestStatus.Approved && requestDoc) {
+            try {
+                const startTime = new Date(requestDoc.startDate);
+                const endTime = new Date(startTime.getTime() + requestDoc.hours * 60 * 60 * 1000);
+
+                await databases.createDocument(
+                    appwriteConfig.databaseId,
+                    appwriteConfig.scheduleCollectionId,
+                    ID.unique(),
+                    {
+                        startTime: startTime.toISOString(),
+                        endTime: endTime.toISOString(),
+                        notes: requestDoc.note || "",
+                        equipmentId: requestDoc.equipmentId,
+                        sessionType: requestDoc.sessionType,
+                        academyId: requestDoc.academyId,
+                        pilotId: requestDoc.pilotId,
+                    }
+                );
+
+                console.log("Schedule created successfully for approved request:", requestId);
+            } catch (scheduleError) {
+                console.error("Error creating schedule for approved request:", scheduleError);
+                // Don't throw here — the request was already approved successfully
+            }
+        }
+
         return result;
     } catch (error) {
         console.error(`Error updating request status to ${status}:`, error);

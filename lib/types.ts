@@ -127,6 +127,20 @@ export interface Request {
 
 export interface RequestDocument extends Request, Models.Document { }
 
+// Schedules
+export interface Schedule {
+    $id: string;
+    startTime: string;   // ISO datetime
+    endTime: string;     // ISO datetime
+    notes: string;
+    equipmentId: string;
+    sessionType: string;
+    academyId: string;
+    pilotId: string;
+}
+
+export interface ScheduleDocument extends Schedule, Models.Document { }
+
 
 //all users
 export interface User {

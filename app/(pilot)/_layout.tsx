@@ -44,7 +44,7 @@ export default function PilotLayout() {
             <Tabs.Screen
                 name="profile"
                 options={{
-                    title: "Profiler",
+                    title: "Profile",
                     tabBarIcon: ({ color }) => <Feather name="calendar" size={24} color={color} />,
                 }}
             />
