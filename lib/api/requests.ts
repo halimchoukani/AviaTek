@@ -2,6 +2,7 @@ import { ID, Permission, Query, Role } from "react-native-appwrite";
 
 import { appwriteConfig, databases } from "../appwrite";
 import { Request as PilotRequest, RequestDocument, RequestStatus } from "../types";
+import { createNotification } from "./notifications";
 
 /**
  * Sends a training request from a pilot to an academy.
@@ -163,12 +164,26 @@ export const updateRequestStatus = async (
                         pilotId: requestDoc.pilotId,
                     }
                 );
-
+                const notification = await createNotification({
+                    title: "Request Approved",
+                    content: `Your training request has been approved`,
+                    type: "request_approved",
+                    read: false,
+                    userId: requestDoc.pilotId,
+                });
                 console.log("Schedule created successfully for approved request:", requestId);
             } catch (scheduleError) {
                 console.error("Error creating schedule for approved request:", scheduleError);
                 // Don't throw here — the request was already approved successfully
             }
+        } else {
+            const notification = await createNotification({
+                title: "Request Rejected",
+                content: `Your training request has been rejected`,
+                type: "request_rejected",
+                read: false,
+                userId: requestDoc.pilotId,
+            });
         }
 
         return result;

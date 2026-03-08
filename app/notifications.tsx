@@ -1,7 +1,6 @@
-import { getRequestsByPilot } from "@/lib/api/requests";
-import { getSchedulesByPilot } from "@/lib/api/schedules";
+import { getNotifications } from "@/lib/api/notifications";
 import { getCurrentUser } from "@/lib/appwrite";
-import { PilotDocument, RequestStatus } from "@/lib/types";
+import { PilotDocument } from "@/lib/types";
 import { Feather } from "@expo/vector-icons";
 import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
@@ -110,86 +109,28 @@ export default function NotificationsPage() {
         queryFn: () => getCurrentUser() as unknown as Promise<PilotDocument>,
     });
 
-    const { data: requests = [], isLoading: reqLoading } = useQuery({
-        queryKey: ["pilotRequests", user?.$id],
-        queryFn: () => getRequestsByPilot(user!.$id),
+    const { data: apiNotifications = [], isLoading } = useQuery({
+        queryKey: ["notifications", user?.$id],
+        queryFn: () => getNotifications(user!.$id),
         enabled: !!user?.$id,
     });
-
-    const { data: schedules = [], isLoading: schLoading } = useQuery({
-        queryKey: ["pilotSchedules", user?.$id],
-        queryFn: () => getSchedulesByPilot(user!.$id),
-        enabled: !!user?.$id,
-    });
-
-    const isLoading = reqLoading || schLoading;
 
     // Build notifications from real data
     const notifications: Notification[] = useMemo(() => {
-        const items: Notification[] = [];
-
-        // Approved requests
-        requests
-            .filter((r) => r.status === RequestStatus.Approved)
-            .forEach((r) => {
-                items.push({
-                    id: `req-approved-${r.$id}`,
-                    type: "request_approved",
-                    title: "Training Request Approved",
-                    description: `Your ${r.sessionType || "training"} request has been approved.${r.startDate ? ` Training starts ${new Date(r.startDate).toLocaleDateString()}.` : ""}`,
-                    timestamp: new Date(r.$updatedAt),
-                    read: readIds.has(`req-approved-${r.$id}`),
-                });
-            });
-
-        // Rejected requests
-        requests
-            .filter((r) => r.status === RequestStatus.Rejected)
-            .forEach((r) => {
-                items.push({
-                    id: `req-rejected-${r.$id}`,
-                    type: "request_rejected",
-                    title: "Training Request Rejected",
-                    description: `Your ${r.sessionType || "training"} request has been rejected.${r.response ? ` Reason: ${r.response}` : ""}`,
-                    timestamp: new Date(r.$updatedAt),
-                    read: readIds.has(`req-rejected-${r.$id}`),
-                });
-            });
-
-        // Pending requests
-        requests
-            .filter((r) => r.status === RequestStatus.Pending)
-            .forEach((r) => {
-                items.push({
-                    id: `req-pending-${r.$id}`,
-                    type: "request_pending",
-                    title: "Request Submitted",
-                    description: `Your ${r.sessionType || "training"} request is pending review by the academy.`,
-                    timestamp: new Date(r.$createdAt),
-                    read: readIds.has(`req-pending-${r.$id}`),
-                });
-            });
-
-        // Upcoming sessions
-        const now = new Date();
-        schedules
-            .filter((s) => new Date(s.startTime) > now)
-            .forEach((s) => {
-                items.push({
-                    id: `sch-upcoming-${s.$id}`,
-                    type: "session_upcoming",
-                    title: "Upcoming Session",
-                    description: `You have a ${s.sessionType || "training"} session on ${new Date(s.startTime).toLocaleDateString()} at ${new Date(s.startTime).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit", hour12: false })}.`,
-                    timestamp: new Date(s.$createdAt),
-                    read: readIds.has(`sch-upcoming-${s.$id}`),
-                });
-            });
+        const items: Notification[] = apiNotifications.map((n) => ({
+            id: n.$id,
+            type: (n.type as NotificationType) || "request_pending",
+            title: n.title,
+            description: n.content,
+            timestamp: new Date(n.$createdAt),
+            read: n.read || readIds.has(n.$id),
+        }));
 
         // Sort by timestamp descending (newest first)
         items.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
         return items;
-    }, [requests, schedules, readIds]);
+    }, [apiNotifications, readIds]);
 
     const unreadCount = notifications.filter((n) => !n.read).length;
 

@@ -160,3 +160,14 @@ export interface User {
         [key: string]: any;
     };
 }
+
+
+export interface Notification {
+    title: string;
+    content: string;
+    type: string;
+    read: boolean;
+    userId: string;
+}
+
+export interface NotificationDocument extends Notification, Models.Document { }

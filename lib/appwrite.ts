@@ -13,6 +13,7 @@ export const appwriteConfig = {
     equipmentCollectionId: process.env.EXPO_PUBLIC_APPWRITE_EQUIPMENT_COLLECTION_ID ?? "equipment",
     simulatorCollectionId: process.env.EXPO_PUBLIC_APPWRITE_SIMULATOR_COLLECTION_ID ?? "simulators",
     scheduleCollectionId: process.env.EXPO_PUBLIC_APPWRITE_SCHEDULE_COLLECTION_ID ?? "schedules",
+    notificationCollectionId: process.env.EXPO_PUBLIC_APPWRITE_NOTIFICATION_COLLECTION_ID ?? "notifications",
 };
 
 
