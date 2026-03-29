@@ -1,6 +1,7 @@
 import { getAcademyById } from "@/lib/api/academies";
 import { getPilotsByAcademy } from "@/lib/api/pilots";
 import { getPlanes } from "@/lib/api/planes";
+import { getRegulationById } from "@/lib/api/regulations";
 import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useSuspenseQuery } from "@tanstack/react-query";
 import { LinearGradient } from 'expo-linear-gradient';
@@ -14,6 +15,10 @@ export default function AcademyProfile() {
     const { data: academy } = useSuspenseQuery({
         queryKey: ['academy', id],
         queryFn: () => getAcademyById(id!),
+    });
+    const { data: regulation } = useSuspenseQuery({
+        queryKey: ['regulation', academy?.programId],
+        queryFn: () => getRegulationById(academy?.programId!),
     });
     const { data: pilots } = useSuspenseQuery({
         queryKey: ['pilots', academy?.$id],
@@ -71,7 +76,7 @@ export default function AcademyProfile() {
                                         <Text style={styles.verifiedText}>VERIFIED</Text>
                                     </View>
                                 </View>
-                                <Text style={styles.profileSubtitle}>FAA Part 141</Text>
+                                <Text style={styles.profileSubtitle}>{regulation?.code + " ( " + regulation?.name + " )"}</Text>
 
                                 <View style={styles.locationRow}>
                                     <Feather name="map-pin" size={12} color="#94A3B8" />

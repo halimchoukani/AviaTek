@@ -2,21 +2,23 @@ import { Feather, FontAwesome5 } from "@expo/vector-icons";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 import {
-    ActivityIndicator,
-    Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
-    StatusBar,
-    StyleSheet,
-    Text,
-    TextInput,
-    TouchableOpacity,
-    View,
+  ActivityIndicator,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  ScrollView,
+  StatusBar,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { registerAcademy } from "@/lib/api/academies";
+import { getAllRegulations } from "@/lib/api/regulations";
+import { useQuery } from "@tanstack/react-query";
 
 export default function AcademySignUp() {
   const router = useRouter();
@@ -30,9 +32,9 @@ export default function AcademySignUp() {
   const [country, setCountry] = useState("");
   const [city, setCity] = useState("");
   const [address, setAddress] = useState("");
-
+  const [regulationCode, setRegulationCode] = useState<string>("");
   // Step 2: Certifications
-  const [certifications, setCertifications] = useState<string[]>([]);
+  const [regulation, setRegulation] = useState<string>("");
 
   // Step 3: Contact & Admin
   const [orgEmail, setOrgEmail] = useState("");
@@ -41,6 +43,11 @@ export default function AcademySignUp() {
   const [adminName, setAdminName] = useState("");
   const [adminEmail, setAdminEmail] = useState("");
   const [password, setPassword] = useState("");
+
+  const { data: regulations, isLoading: isRegulationsLoading } = useQuery({
+    queryKey: ["regulations"],
+    queryFn: () => getAllRegulations(),
+  });
 
   const handleRegister = async () => {
     if (!orgName || !adminEmail || !password) {
@@ -61,6 +68,7 @@ export default function AcademySignUp() {
         adminName,
         adminEmail,
         password,
+        regulation
       });
 
       Alert.alert("Success", "Academy registered successfully!", [
@@ -98,11 +106,14 @@ export default function AcademySignUp() {
 
   const prevStep = () => setStep(step - 1);
 
-  const toggleCertification = (cert: string) => {
-    if (certifications.includes(cert)) {
-      setCertifications(certifications.filter((c) => c !== cert));
+  const toggleRegulation = (cert: string) => {
+    if (regulation === cert) {
+      setRegulationCode("");
+      setRegulation("");
     } else {
-      setCertifications([...certifications, cert]);
+      const regulation = regulations?.find((reg: any) => reg.$id === cert);
+      setRegulationCode(regulation?.code || "");
+      setRegulation(cert);
     }
   };
 
@@ -188,39 +199,28 @@ export default function AcademySignUp() {
     </View>
   );
 
-  const renderStep2 = () => (
-    <View style={styles.stepContainer}>
-      <Text style={styles.sectionTitle}>Certifications</Text>
-      <Text style={styles.sectionSubtitle}>
-        Select your regulatory approvals
-      </Text>
+  const renderStep2 = () => {
+    if (isRegulationsLoading) return <ActivityIndicator />
 
-      {/* <CertOption
-                title="FAA Part 141"
-                subtitle="FAA Approved Flight School"
-                selected={certifications.includes("FAA Part 141")}
-                onPress={() => toggleCertification("FAA Part 141")}
-            />
-            <CertOption
-                title="FAA Part 61"
-                subtitle="FAA Certified Flight Training"
-                selected={certifications.includes("FAA Part 61")}
-                onPress={() => toggleCertification("FAA Part 61")}
-            />
-            <CertOption
-                title="EASA ATO"
-                subtitle="European Aviation Safety Agency"
-                selected={certifications.includes("EASA ATO")}
-                onPress={() => toggleCertification("EASA ATO")}
-            />
-            <CertOption
-                title="CASA Part 141"
-                subtitle="Australian Civil Aviation Safety Authority"
-                selected={certifications.includes("CASA Part 141")}
-                onPress={() => toggleCertification("CASA Part 141")}
-            /> */}
-    </View>
-  );
+    return (
+      <View style={styles.stepContainer}>
+        <Text style={styles.sectionTitle}>Regulations</Text>
+        <Text style={styles.sectionSubtitle}>
+          Select your regulatory approvals
+        </Text>
+        {regulations?.map((reg: any) => (
+          <CertOption
+            key={reg.$id}
+
+            title={reg.code}
+            subtitle={reg.name}
+            selected={regulation === reg.$id}
+            onPress={() => toggleRegulation(reg.$id)}
+          />
+        ))}
+      </View>
+    )
+  };
 
   const renderStep3 = () => (
     <View style={styles.stepContainer}>
@@ -322,15 +322,14 @@ export default function AcademySignUp() {
           <Text style={styles.reviewValue}>{orgType}</Text>
         </View>
         <View style={styles.reviewRow}>
-          <Text style={styles.reviewLabel}>Certifications</Text>
+          <Text style={styles.reviewLabel}>Regulations</Text>
           <View style={{ alignItems: "flex-end" }}>
-            {certifications.map((c) => (
-              <Text key={c} style={styles.reviewValue}>
-                {c}
-              </Text>
-            ))}
-            {certifications.length === 0 && (
+            {regulation === "" ? (
               <Text style={styles.reviewValue}>None</Text>
+            ) : (
+              <Text style={styles.reviewValue}>
+                {regulationCode}
+              </Text>
             )}
           </View>
         </View>

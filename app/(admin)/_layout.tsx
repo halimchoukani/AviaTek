@@ -35,6 +35,19 @@ export default function AdminLayout() {
                 }}
             />
             <Tabs.Screen
+                name="regulation"
+                options={{
+                    title: "Regulations",
+                    tabBarIcon: ({ color }) => <Feather name="book-open" size={24} color={color} />,
+                }}
+            />
+            <Tabs.Screen
+                name="programs"
+                options={{
+                    href: null, // This hides it from the bottom tab bar
+                }}
+            />
+            <Tabs.Screen
                 name="exit"
                 options={{
                     title: "Exit",
