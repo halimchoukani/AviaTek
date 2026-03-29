@@ -4,11 +4,11 @@ import { RegulationDocument } from "../types";
 
 export const getAllRegulations = async () => {
     try {
-
         const response = await api.get('/regulations');
+
         return response.data.regulations.documents as RegulationDocument[];
     } catch (error) {
-        console.log(error); return [];
+        console.log("Error fetching regulations: get", error); return [];
     }
 }
 

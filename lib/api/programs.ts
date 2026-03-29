@@ -4,16 +4,14 @@ import { ProgramLicense, ProgramLicenseDocument } from "../types";
 
 export const getProgramsByRegulationId = async (id: string) => {
     try {
-        console.log(id);
         // Assume backend fetches programs via regulation ID
         const response = await api.get(`/regulation-programs/${id}`);
 
         // Adjust response extraction as per backend format, guessing standard structure
         if (response.data.regulationPrograms) {
-            console.log("Programs fetched:", response.data.regulationPrograms);
-            return response.data.regulationPrograms as ProgramLicenseDocument[];
+            return response.data.regulationPrograms.documents as ProgramLicenseDocument[];
         }
-        return response.data as ProgramLicenseDocument[];
+        return response.data.documents as ProgramLicenseDocument[];
     } catch (error) {
         console.log("Error fetching programs:", error);
         return [];

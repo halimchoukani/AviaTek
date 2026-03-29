@@ -6,6 +6,7 @@ import { useMutation, useQueryClient, useSuspenseQuery } from '@tanstack/react-q
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useRef, useState } from 'react';
 import {
+    ActivityIndicator,
     Animated,
     FlatList,
     KeyboardAvoidingView,
@@ -112,10 +113,18 @@ export default function Programs() {
     });
 
     // Default to empty array if backend errors and returns undefined to avoid mapping over undefined
-    const { data: fetchedPrograms } = useSuspenseQuery({
+    const { data: fetchedPrograms, isLoading: isProgramsLoading } = useSuspenseQuery({
         queryKey: ['programs', regId],
         queryFn: () => getProgramsByRegulationId(regId),
+        refetchInterval: 3000,
     });
+    if (isProgramsLoading) {
+        return (
+            <View className="flex-1 items-center justify-center">
+                <ActivityIndicator size="large" color="#FFFFFF" />
+            </View>
+        )
+    }
     const programs = fetchedPrograms || [];
 
     const [search, setSearch] = useState('');
