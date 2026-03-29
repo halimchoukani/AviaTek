@@ -171,3 +171,15 @@ export interface Notification {
 }
 
 export interface NotificationDocument extends Notification, Models.Document { }
+
+export interface Regulation {
+    $id: string;
+    code: string;
+    name: string;
+    region: string;
+    logoUrl?: string;
+    isActive: boolean;
+    contactUrl?: string;
+}
+
+export interface RegulationDocument extends Regulation, Models.Document { }

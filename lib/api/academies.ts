@@ -14,6 +14,7 @@ interface RegisterAcademyParams {
     adminName: string;
     adminEmail: string;
     password: string;
+    regulation: string;
 }
 
 export async function registerAcademy(params: RegisterAcademyParams) {
@@ -28,6 +29,7 @@ export async function registerAcademy(params: RegisterAcademyParams) {
         adminName,
         adminEmail,
         password,
+        regulation
     } = params;
 
     try {
@@ -61,6 +63,7 @@ export async function registerAcademy(params: RegisterAcademyParams) {
                 phoneNumber: phone,
                 website,
                 isVerified: false,
+                programId: regulation,
             },
             [
                 Permission.read(Role.user(user.$id)),        // Only owner can read
