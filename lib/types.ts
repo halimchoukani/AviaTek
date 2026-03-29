@@ -183,3 +183,22 @@ export interface Regulation {
 }
 
 export interface RegulationDocument extends Regulation, Models.Document { }
+
+export interface ProgramLicense {
+    id: string;
+    programId: string;
+    code: string;
+    name: string;
+    description: string;
+    minAgeYears: number;
+    totalHours: number;
+    simHoursMin: number;
+    soloHoursMin: number;
+    dualHoursMin: number;
+    crossCountryMin: number;
+    theoryExamsCount: number;
+    requiresMedical: boolean;
+    medicalClass: string;
+    isActive: boolean;
+}
+export interface ProgramLicenseDocument extends ProgramLicense, Models.Document { }
