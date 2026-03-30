@@ -4,8 +4,10 @@ import { ProgramLicense, ProgramLicenseDocument } from "../types";
 
 export const getProgramsByRegulationId = async (id: string) => {
     try {
+        console.log("Fetching programs for Regulation ID:", id);
         // Assume backend fetches programs via regulation ID
         const response = await api.get(`/regulation-programs/${id}`);
+        console.log("Programs API Response:", response.data);
 
         // Adjust response extraction as per backend format, guessing standard structure
         if (response.data.regulationPrograms) {
@@ -14,6 +16,21 @@ export const getProgramsByRegulationId = async (id: string) => {
         return response.data.documents as ProgramLicenseDocument[];
     } catch (error) {
         console.log("Error fetching programs:", error);
+        return [];
+    }
+}
+
+export const getProgramsByAcademyId = async (academyId: string) => {
+    try {
+        console.log("Fetching programs for Academy ID:", academyId);
+        const response = await api.get(`/academy-programs/${academyId}`);
+        console.log("Academy Programs API Response:", response.data);
+        if (response.data.academyPrograms) {
+            return response.data.academyPrograms.documents as ProgramLicenseDocument[];
+        }
+        return response.data.documents as ProgramLicenseDocument[];
+    } catch (error) {
+        console.log("Error fetching programs by academy ID:", error);
         return [];
     }
 }

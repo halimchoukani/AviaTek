@@ -52,6 +52,16 @@ export default function TabLayout() {
         }}
       />
       <Tabs.Screen
+        name="regulation"
+        options={{
+          title: "Regulation",
+          tabBarIcon: ({ color }) => (
+            <Feather name="shield" size={24} color={color} />
+          ),
+          href: null, 
+        }}
+      />
+      <Tabs.Screen
         name="courses"
         options={{
           title: "Courses",
