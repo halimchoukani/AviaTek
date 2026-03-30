@@ -128,13 +128,12 @@ export const updateRequestStatus = async (
     try {
         // If approving, fetch the full request first so we can create a schedule
         let requestDoc: any = null;
-        if (status === RequestStatus.Approved) {
-            requestDoc = await databases.getDocument(
-                appwriteConfig.databaseId,
-                appwriteConfig.requestCollectionId,
-                requestId
-            );
-        }
+        requestDoc = await databases.getDocument(
+            appwriteConfig.databaseId,
+            appwriteConfig.requestCollectionId,
+            requestId
+        );
+
 
         // Update the request status
         const result = await databases.updateDocument(
@@ -176,7 +175,8 @@ export const updateRequestStatus = async (
                 console.error("Error creating schedule for approved request:", scheduleError);
                 // Don't throw here — the request was already approved successfully
             }
-        } else {
+        }
+        if (status === RequestStatus.Rejected && requestDoc) {
             const notification = await createNotification({
                 title: "Request Rejected",
                 content: `Your training request has been rejected`,
@@ -185,7 +185,6 @@ export const updateRequestStatus = async (
                 userId: requestDoc.pilotId,
             });
         }
-
         return result;
     } catch (error) {
         console.error(`Error updating request status to ${status}:`, error);
