@@ -1,22 +1,21 @@
-import React, { useMemo, useState } from 'react';
-import {
-    View,
-    Text,
-    StyleSheet,
-    TouchableOpacity,
-    ScrollView,
-    TextInput,
-    StatusBar,
-    ActivityIndicator
-} from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Feather, MaterialCommunityIcons, FontAwesome5 } from '@expo/vector-icons';
+import { Feather, FontAwesome5 } from '@expo/vector-icons';
 import { useSuspenseQuery } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
+import React, { useMemo, useState } from 'react';
+import {
+    ScrollView,
+    StatusBar,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View
+} from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { getCurrentUser } from '@/lib/appwrite';
-import { getRegulationById } from '@/lib/api/regulations';
 import { getProgramsByAcademyId, getProgramsByRegulationId } from '@/lib/api/programs';
+import { getRegulationById } from '@/lib/api/regulations';
+import { getCurrentUser } from '@/lib/appwrite';
 import { ProgramLicenseDocument } from '@/lib/types';
 
 const ProgramCard = ({ program }: { program: ProgramLicenseDocument }) => {
@@ -34,12 +33,12 @@ const ProgramCard = ({ program }: { program: ProgramLicenseDocument }) => {
     return (
         <View style={styles.programCard}>
             <View style={[styles.programCardBorder, { backgroundColor: borderColor }]} />
-            
+
             <View style={styles.programHeader}>
                 <View style={styles.programCodeContainer}>
                     <Text style={styles.programCode}>{program.code}</Text>
                 </View>
-                
+
                 <View style={styles.programInfo}>
                     <Text style={styles.programName}>{program.name}</Text>
                     <View style={styles.programBadges}>
@@ -57,9 +56,6 @@ const ProgramCard = ({ program }: { program: ProgramLicenseDocument }) => {
                     </View>
                 </View>
 
-                <TouchableOpacity style={styles.editButton}>
-                    <Feather name="edit-2" size={18} color="#64748B" />
-                </TouchableOpacity>
             </View>
 
             <View style={styles.programStats}>
@@ -67,12 +63,12 @@ const ProgramCard = ({ program }: { program: ProgramLicenseDocument }) => {
                     <Feather name="clock" size={14} color="#64748B" />
                     <Text style={styles.statValue}>{program.totalHours} h</Text>
                 </View>
-                
+
                 <View style={styles.statItem}>
                     <Feather name="user" size={14} color="#64748B" />
                     <Text style={styles.statValue}>{program.minAgeYears}+</Text>
                 </View>
-                
+
                 <View style={styles.statItem}>
                     <Feather name="book-open" size={14} color="#64748B" />
                     <Text style={styles.statValue}>{program.theoryExamsCount}</Text>
@@ -140,8 +136,8 @@ export default function RegulationScreen() {
 
     const filteredPrograms = useMemo(() => {
         return programs.filter((p: ProgramLicenseDocument) => {
-            const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                                p.code.toLowerCase().includes(searchQuery.toLowerCase());
+            const matchesSearch = p.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                p.code.toLowerCase().includes(searchQuery.toLowerCase());
             const matchesFilter = filter === 'All' || (filter === 'Active' && p.isActive) || (filter === 'Inactive' && !p.isActive);
             return matchesSearch && matchesFilter;
         });
@@ -150,7 +146,7 @@ export default function RegulationScreen() {
     return (
         <SafeAreaView style={styles.container}>
             <StatusBar barStyle="light-content" />
-            
+
             {/* Header */}
             <View style={styles.header}>
                 <View style={styles.headerTitleContainer}>
@@ -159,9 +155,6 @@ export default function RegulationScreen() {
                     </View>
                     <Text style={styles.academyTitle}>{academy?.name || 'Fly Academy'}</Text>
                 </View>
-                <TouchableOpacity style={styles.settingsButton}>
-                    <Feather name="settings" size={20} color="#94A3B8" />
-                </TouchableOpacity>
             </View>
 
             <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
@@ -195,14 +188,7 @@ export default function RegulationScreen() {
                     </View>
                 </View>
 
-                {/* Training Programs Header */}
-                <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Training Programs</Text>
-                    <TouchableOpacity style={styles.addButton}>
-                        <Feather name="plus" size={18} color="#C9A961" />
-                        <Text style={styles.addButtonText}>Add</Text>
-                    </TouchableOpacity>
-                </View>
+
 
                 {/* Search Bar */}
                 <View style={styles.searchBar}>
@@ -219,8 +205,8 @@ export default function RegulationScreen() {
                 {/* Filter Tabs */}
                 <View style={styles.filterTabs}>
                     {['All', 'Active', 'Inactive'].map(tab => (
-                        <TouchableOpacity 
-                            key={tab} 
+                        <TouchableOpacity
+                            key={tab}
                             onPress={() => setFilter(tab)}
                             style={[styles.filterTab, filter === tab && styles.filterTabActive]}
                         >
