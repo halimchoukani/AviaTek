@@ -1,12 +1,12 @@
 import axios from "axios";
 import { createJWT } from "./appwrite";
 
-const api = axios.create({
+const adminApi = axios.create({
     baseURL: process.env.EXPO_PUBLIC_ADMIN_API,
     timeout: 10000,
 });
 
-api.interceptors.request.use(async (config) => {
+adminApi.interceptors.request.use(async (config) => {
     try {
         const token = await createJWT();
         if (token) {
@@ -20,4 +20,4 @@ api.interceptors.request.use(async (config) => {
     return Promise.reject(error);
 });
 
-export default api;
+export default adminApi;

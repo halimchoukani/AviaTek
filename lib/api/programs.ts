@@ -1,3 +1,4 @@
+import adminApi from "../admin-config";
 import api from "../api-config";
 import { createJWT } from "../appwrite";
 import { ProgramLicense, ProgramLicenseDocument } from "../types";
@@ -40,7 +41,7 @@ export const createProgram = async (data: Partial<ProgramLicense>) => {
         console.log("Creating program:", data);
         const token = await createJWT();
         const headers = { Authorization: `Bearer ${token}` };
-        const response = await api.post('/regulation-programs', data, { headers });
+        const response = await adminApi.post('/regulation-programs', data, { headers });
         return response.data.program as ProgramLicenseDocument;
     } catch (error) {
         console.log("Error creating program:", error);
@@ -52,7 +53,7 @@ export const updateProgram = async (id: string, data: Partial<ProgramLicense>) =
     try {
         const token = await createJWT();
         const headers = { Authorization: `Bearer ${token}` };
-        const response = await api.patch(`/regulation-programs/${id}`, data, { headers });
+        const response = await adminApi.patch(`/regulation-programs/${id}`, data, { headers });
         return response.data.program as ProgramLicenseDocument;
     } catch (error) {
         console.log("Error updating program:", error);
