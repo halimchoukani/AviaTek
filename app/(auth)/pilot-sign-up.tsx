@@ -1,11 +1,24 @@
-import { Ionicons } from "@expo/vector-icons";
-import { Link, router } from "expo-router";
+import { registerPilot } from "@/lib/api/pilots";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { LinearGradient } from "expo-linear-gradient";
+import { Link, useRouter } from "expo-router";
+import { StatusBar } from "expo-status-bar";
 import React, { useState } from "react";
-import { Alert, ScrollView, Text, TextInput, TouchableOpacity, View } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { registerPilot } from "../../lib/api/pilots";
+import {
+    ActivityIndicator,
+    Alert,
+    KeyboardAvoidingView,
+    Platform,
+    ScrollView,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
+} from "react-native";
 
 const SignUp = () => {
+    const router = useRouter();
     const [step, setStep] = useState(1);
     const [form, setForm] = useState({
         name: "",
@@ -18,16 +31,13 @@ const SignUp = () => {
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showPassword, setShowPassword] = useState(false);
-    const [showConfirmPassword, setShowConfirmPassword] = useState(false);
 
     const nextStep = () => {
         if (step === 1) {
             if (!form.name || !form.lastName || !form.email || !form.phone) {
-                Alert.alert("Error", "Please fill in all required fields");
+                Alert.alert("Required Fields", "Please complete all contact identity fields.");
                 return;
             }
-        } else if (step === 2) {
-            // Step 2 is optional (License Number), so we can proceed
         }
         setStep(step + 1);
     };
@@ -38,17 +48,17 @@ const SignUp = () => {
 
     const submit = async () => {
         if (!form.password || !form.confirmPassword) {
-            Alert.alert("Error", "Please set your password");
+            Alert.alert("Password Required", "Please set your access credentials.");
             return;
         }
 
         if (form.password.length < 8) {
-            Alert.alert("Error", "Password must be at least 8 characters long");
+            Alert.alert("Security Check", "Password must be at least 8 characters for mission security.");
             return;
         }
 
         if (form.password !== form.confirmPassword) {
-            Alert.alert("Error", "Passwords do not match");
+            Alert.alert("Mismatch", "Access credentials do not match.");
             return;
         }
 
@@ -61,150 +71,141 @@ const SignUp = () => {
                 form.lastName,
                 form.phone,
                 form.licenseNumber,
-
             );
-
-            // Navigate to the main app (tabs)
             router.replace("/(pilot)/home");
         } catch (error: any) {
-            Alert.alert("Error", error.message);
+            console.error(error);
+            Alert.alert("System Error", error.message);
         } finally {
             setIsSubmitting(false);
         }
     };
 
     const renderStepIndicator = () => (
-        <View className="flex-row justify-center space-x-2 mb-8 gap-2">
+        <View style={styles.indicatorContainer}>
             {[1, 2, 3].map((s) => (
-                <View
-                    key={s}
-                    className={`h-2 rounded-full ${s === step ? 'w-8 bg-secondary' : 'w-2 bg-gray-600'} ${s < step ? 'bg-secondary opacity-50' : ''}`}
-                />
+                <View key={s} style={[
+                    styles.indicator,
+                    s === step && styles.indicatorActive,
+                    s < step && styles.indicatorComplete
+                ]} />
             ))}
         </View>
     );
 
     return (
-        <SafeAreaView className="bg-primary h-full">
-            <ScrollView contentContainerStyle={{ flexGrow: 1, justifyContent: 'center' }}>
-                <View className="w-full px-4 my-6">
+        <View style={styles.container}>
+            <StatusBar style="light" />
+            <LinearGradient
+                colors={['#020617', '#0F172A', '#1E293B']}
+                style={StyleSheet.absoluteFill}
+            />
 
-                    {/* LOGO Placeholder */}
-                    <View className="justify-center items-center mb-6">
-                        <View className="w-16 h-16 rounded-full bg-card items-center justify-center border border-border">
-                            <Ionicons name="airplane-outline" size={28} color="#C9A961" />
+            <KeyboardAvoidingView
+                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+                style={{ flex: 1 }}
+            >
+                <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    contentContainerStyle={styles.scrollContent}
+                >
+                    {/* Header */}
+                    <View style={styles.header}>
+                        <View style={styles.logoBadge}>
+                            <MaterialCommunityIcons name="airplane-takeoff" size={32} color="#C9A961" />
                         </View>
+                        <Text style={styles.title}>PILOT <Text style={styles.titleGold}>JOINING</Text></Text>
+                        <Text style={styles.subtitle}>INITIALIZE FLIGHT PROFILE</Text>
                     </View>
-
-                    <Text className="text-2xl text-text-primary text-center font-bold">
-                        Pilot Registration
-                    </Text>
-                    <Text className="text-text-secondary text-center mb-6 mt-2 text-sm">
-                        Create your aviation identity
-                    </Text>
 
                     {renderStepIndicator()}
 
-                    <View className="space-y-4">
-
+                    {/* Step Card */}
+                    <View style={styles.card}>
                         {step === 1 && (
-                            <View className="gap-4">
-                                {/* Full Name */}
-                                <View className="flex-row gap-2 w-full">
-                                    <View className="space-y-2 flex-col gap-2 w-1/2">
-                                        <Text className="text-sm text-text-secondary font-medium">First Name *</Text>
-                                        <View className="w-full h-14 px-4 bg-card rounded-xl border border-border focus:border-secondary items-center flex-row">
-                                            <TextInput
-                                                className="flex-1 text-white font-semibold text-base"
-                                                value={form.name}
-                                                placeholder="John"
-                                                placeholderTextColor="#64748B"
-                                                onChangeText={(e) => setForm({ ...form, name: e })}
-                                            />
-                                        </View>
-                                    </View>
-                                    <View className="space-y-2 flex-col gap-2 w-1/2">
-                                        <Text className="text-sm text-text-secondary font-medium">Last Name *</Text>
-                                        <View className="w-full h-14 px-4 bg-card rounded-xl border border-border focus:border-secondary items-center flex-row">
-                                            <TextInput
-                                                className="flex-1 text-white font-semibold text-base"
-                                                value={form.lastName}
-                                                placeholder="Doe"
-                                                placeholderTextColor="#64748B"
-                                                onChangeText={(e) => setForm({ ...form, lastName: e })}
-                                            />
-                                        </View>
-                                    </View>
-                                </View>
-
-                                {/* Email */}
-                                <View className="space-y-2 flex-col gap-2">
-                                    <Text className="text-sm text-text-secondary font-medium">Email *</Text>
-                                    <View className="w-full h-14 px-4 bg-card rounded-xl border border-border focus:border-secondary items-center flex-row">
+                            <View>
+                                <Text style={styles.stepTitle}>Contact Telemetry</Text>
+                                <View style={styles.row}>
+                                    <View style={{ flex: 1, marginRight: 8 }}>
+                                        <Text style={styles.label}>FIRST NAME</Text>
                                         <TextInput
-                                            className="flex-1 text-white font-semibold text-base"
-                                            value={form.email}
-                                            placeholder="pilot@aviation.id"
-                                            placeholderTextColor="#64748B"
-                                            onChangeText={(e) => setForm({ ...form, email: e })}
-                                            keyboardType="email-address"
-                                            autoCapitalize="none"
+                                            style={styles.input}
+                                            value={form.name}
+                                            placeholder="John"
+                                            placeholderTextColor="#475569"
+                                            onChangeText={(e) => setForm({ ...form, name: e })}
+                                        />
+                                    </View>
+                                    <View style={{ flex: 1, marginLeft: 8 }}>
+                                        <Text style={styles.label}>LAST NAME</Text>
+                                        <TextInput
+                                            style={styles.input}
+                                            value={form.lastName}
+                                            placeholder="Doe"
+                                            placeholderTextColor="#475569"
+                                            onChangeText={(e) => setForm({ ...form, lastName: e })}
                                         />
                                     </View>
                                 </View>
 
-                                {/* Phone */}
-                                <View className="space-y-2 flex-col gap-2">
-                                    <Text className="text-sm text-text-secondary font-medium">Phone *</Text>
-                                    <View className="w-full h-14 px-4 bg-card rounded-xl border border-border focus:border-secondary items-center flex-row">
-                                        <TextInput
-                                            className="flex-1 text-white font-semibold text-base"
-                                            value={form.phone}
-                                            placeholder="+1 (555) 123-4567"
-                                            placeholderTextColor="#64748B"
-                                            onChangeText={(e) => setForm({ ...form, phone: e })}
-                                            keyboardType="phone-pad"
-                                        />
-                                    </View>
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>EMAIL FREQUENCY</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={form.email}
+                                        placeholder="pilot@aviation.id"
+                                        placeholderTextColor="#475569"
+                                        onChangeText={(e) => setForm({ ...form, email: e })}
+                                        keyboardType="email-address"
+                                        autoCapitalize="none"
+                                    />
+                                </View>
+
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>COMMS CHANNEL (PHONE)</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={form.phone}
+                                        placeholder="+1 (555) 000-0000"
+                                        placeholderTextColor="#475569"
+                                        onChangeText={(e) => setForm({ ...form, phone: e })}
+                                        keyboardType="phone-pad"
+                                    />
                                 </View>
                             </View>
                         )}
 
                         {step === 2 && (
-                            <View className="gap-4">
-                                {/* License Number */}
-                                <View className="space-y-2 flex-col gap-2">
-                                    <View className="flex-row justify-between">
-                                        <Text className="text-sm text-text-secondary font-medium">License Number</Text>
-                                        <Text className="text-xs text-text-secondary opacity-50">(Please Provide a verified License Number)</Text>
-                                    </View>
-                                    <View className="w-full h-14 px-4 bg-card rounded-xl border border-border focus:border-secondary items-center flex-row">
-                                        <TextInput
-                                            className="flex-1 text-white font-semibold text-base"
-                                            value={form.licenseNumber}
-                                            placeholder="PPL-1234-US"
-                                            placeholderTextColor="#64748B"
-                                            onChangeText={(e) => setForm({ ...form, licenseNumber: e })}
-                                        />
-                                    </View>
-                                    <Text className="text-xs text-text-secondary mt-2">
-                                        Enter your primary pilot license number. You can verify additional ratings later in your profile.
-                                    </Text>
+                            <View>
+                                <Text style={styles.stepTitle}>License & Rank</Text>
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>PRIMARY LICENSE NUMBER</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={form.licenseNumber}
+                                        placeholder="PPL-1234-US"
+                                        placeholderTextColor="#475569"
+                                        onChangeText={(e) => setForm({ ...form, licenseNumber: e })}
+                                        autoCapitalize="characters"
+                                    />
                                 </View>
+                                <Text style={styles.infoText}>
+                                    Enter your primary license number. This will be verified by the academy flight department.
+                                </Text>
                             </View>
                         )}
 
                         {step === 3 && (
-                            <View className="gap-4">
-                                {/* Password */}
-                                <View className="space-y-2 flex-col gap-2">
-                                    <Text className="text-sm text-text-secondary font-medium">Password *</Text>
-                                    <View className="w-full h-14 px-4 bg-card rounded-xl border border-border focus:border-secondary items-center flex-row">
+                            <View>
+                                <Text style={styles.stepTitle}>Secure Credentials</Text>
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>ACCESS PASSWORD</Text>
+                                    <View style={styles.passwordWrapper}>
                                         <TextInput
-                                            className="flex-1 text-white font-semibold text-base"
+                                            style={[styles.input, { borderBottomWidth: 0, marginBottom: 0 }]}
                                             value={form.password}
                                             placeholder="Min. 8 characters"
-                                            placeholderTextColor="#64748B"
+                                            placeholderTextColor="#475569"
                                             onChangeText={(e) => setForm({ ...form, password: e })}
                                             secureTextEntry={!showPassword}
                                         />
@@ -214,70 +215,220 @@ const SignUp = () => {
                                     </View>
                                 </View>
 
-                                {/* Confirm Password */}
-                                <View className="space-y-2 flex-col gap-2">
-                                    <Text className="text-sm text-text-secondary font-medium">Confirm Password *</Text>
-                                    <View className="w-full h-14 px-4 bg-card rounded-xl border border-border focus:border-secondary items-center flex-row">
-                                        <TextInput
-                                            className="flex-1 text-white font-semibold text-base"
-                                            value={form.confirmPassword}
-                                            placeholder={"*".repeat(8)}
-                                            placeholderTextColor="#64748B"
-                                            onChangeText={(e) => setForm({ ...form, confirmPassword: e })}
-                                            secureTextEntry={!showConfirmPassword}
-                                        />
-                                        <TouchableOpacity onPress={() => setShowConfirmPassword(!showConfirmPassword)}>
-                                            <Ionicons name={showConfirmPassword ? "eye" : "eye-off"} size={20} color="#64748B" />
-                                        </TouchableOpacity>
-                                    </View>
+                                <View style={styles.inputGroup}>
+                                    <Text style={styles.label}>CONFIRM PASSWORD</Text>
+                                    <TextInput
+                                        style={styles.input}
+                                        value={form.confirmPassword}
+                                        placeholder="Repeat password"
+                                        placeholderTextColor="#475569"
+                                        onChangeText={(e) => setForm({ ...form, confirmPassword: e })}
+                                        secureTextEntry={!showPassword}
+                                    />
                                 </View>
                             </View>
                         )}
 
-                    </View>
+                        {/* Navigation Buttons */}
+                        <View style={styles.navRow}>
+                            {step > 1 && (
+                                <TouchableOpacity style={styles.backBtn} onPress={prevStep}>
+                                    <Text style={styles.backBtnText}>PREVIOUS</Text>
+                                </TouchableOpacity>
+                            )}
 
-                    <View className="mt-8 flex-row space-x-4 gap-4">
-                        {step > 1 && (
                             <TouchableOpacity
-                                onPress={prevStep}
-                                activeOpacity={0.7}
-                                className="flex-1 bg-card border border-border rounded-xl min-h-[56px] justify-center items-center"
+                                style={[styles.nextBtn, isSubmitting && { opacity: 0.7 }]}
+                                onPress={step === 3 ? submit : nextStep}
                                 disabled={isSubmitting}
                             >
-                                <Text className="text-white font-semibold text-base">Back</Text>
+                                {isSubmitting ? (
+                                    <ActivityIndicator color="#020617" />
+                                ) : (
+                                    <>
+                                        <Text style={styles.nextBtnText}>{step === 3 ? 'FINALIZE' : 'NEXT PHASE'}</Text>
+                                        <Ionicons name="chevron-forward" size={18} color="#020617" />
+                                    </>
+                                )}
                             </TouchableOpacity>
-                        )}
-
-                        <TouchableOpacity
-                            onPress={step === 3 ? submit : nextStep}
-                            activeOpacity={0.7}
-                            className={`flex-1 bg-secondary rounded-xl min-h-[56px] justify-center items-center flex-row space-x-2 ${isSubmitting ? 'opacity-50' : ''}`}
-                            disabled={isSubmitting}
-                        >
-                            <Text className="text-primary font-bold text-lg mr-2">
-                                {step === 3 ? 'Finish' : 'Next'}
-                            </Text>
-                            {step < 3 && <Ionicons name="chevron-forward" size={20} color="#020617" />}
-                        </TouchableOpacity>
+                        </View>
                     </View>
 
-                    <View className="justify-center pt-6 flex-row gap-2">
-                        <Text className="text-text-secondary text-sm font-regular">
-                            Already have an account?
-                        </Text>
-                        <Link href={"/sign-in" as any} className="text-secondary text-sm font-semibold">
-                            Sign In
+                    <View style={styles.footer}>
+                        <Text style={styles.footerText}>Existing Operator?</Text>
+                        <Link href={"/sign-in" as any} style={styles.signInLink}>
+                            AUTHENTICATE
                         </Link>
                     </View>
-
-                    <Text className="text-text-secondary text-xs font-regular text-center opacity-70 mt-8 px-4">
-                        By registering, you agree to the Aviation Identity Terms of Service.
-                    </Text>
-
-                </View>
-            </ScrollView>
-        </SafeAreaView>
+                </ScrollView>
+            </KeyboardAvoidingView>
+        </View>
     );
 };
 
-export default SignUp;
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        backgroundColor: '#020617',
+    },
+    scrollContent: {
+        padding: 24,
+        paddingTop: 60,
+    },
+    header: {
+        alignItems: 'center',
+        marginBottom: 32,
+    },
+    logoBadge: {
+        width: 64,
+        height: 64,
+        borderRadius: 20,
+        backgroundColor: 'rgba(30, 41, 59, 0.5)',
+        borderWidth: 1,
+        borderColor: 'rgba(201, 169, 97, 0.3)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
+    },
+    title: {
+        fontSize: 28,
+        fontWeight: '900',
+        color: '#FFFFFF',
+        letterSpacing: 2,
+    },
+    titleGold: {
+        color: '#C9A961',
+    },
+    subtitle: {
+        color: '#64748B',
+        fontSize: 10,
+        letterSpacing: 2,
+        marginTop: 4,
+        fontWeight: 'bold',
+    },
+    indicatorContainer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        gap: 8,
+        marginBottom: 32,
+    },
+    indicator: {
+        height: 4,
+        width: 24,
+        backgroundColor: 'rgba(255,255,255,0.1)',
+        borderRadius: 2,
+    },
+    indicatorActive: {
+        backgroundColor: '#C9A961',
+        width: 40,
+    },
+    indicatorComplete: {
+        backgroundColor: 'rgba(201, 169, 97, 0.4)',
+    },
+    card: {
+        backgroundColor: 'rgba(30, 41, 59, 0.4)',
+        borderRadius: 24,
+        padding: 24,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.1)',
+    },
+    stepTitle: {
+        fontSize: 18,
+        fontWeight: 'bold',
+        color: '#FFFFFF',
+        marginBottom: 24,
+    },
+    row: {
+        flexDirection: 'row',
+        marginBottom: 20,
+    },
+    inputGroup: {
+        marginBottom: 20,
+    },
+    label: {
+        color: '#94A3B8',
+        fontSize: 10,
+        fontWeight: '900',
+        marginBottom: 8,
+        letterSpacing: 1,
+    },
+    input: {
+        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(51, 65, 85, 0.8)',
+        height: 52,
+        paddingHorizontal: 16,
+        color: '#FFFFFF',
+        fontSize: 15,
+    },
+    passwordWrapper: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        backgroundColor: 'rgba(15, 23, 42, 0.6)',
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(51, 65, 85, 0.8)',
+        height: 52,
+        paddingHorizontal: 16,
+    },
+    infoText: {
+        color: '#64748B',
+        fontSize: 12,
+        lineHeight: 18,
+        marginTop: 4,
+    },
+    navRow: {
+        flexDirection: 'row',
+        marginTop: 24,
+        gap: 12,
+    },
+    backBtn: {
+        flex: 1,
+        height: 52,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: 'rgba(255,255,255,0.1)',
+        justifyContent: 'center',
+        alignItems: 'center',
+    },
+    backBtnText: {
+        color: '#94A3B8',
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    nextBtn: {
+        flex: 2,
+        backgroundColor: '#C9A961',
+        height: 52,
+        borderRadius: 12,
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 8,
+    },
+    nextBtnText: {
+        color: '#020617',
+        fontSize: 14,
+        fontWeight: '900',
+    },
+    footer: {
+        flexDirection: 'row',
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginTop: 40,
+        gap: 8,
+        paddingBottom: 40,
+    },
+    footerText: {
+        color: '#94A3B8',
+        fontSize: 14,
+    },
+    signInLink: {
+        color: '#FFFFFF',
+        fontSize: 14,
+        fontWeight: 'bold',
+        textDecorationLine: 'underline',
+    },
+});
+

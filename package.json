@@ -22,6 +22,7 @@
     "@tanstack/react-query": "^5.90.21",
     "appwrite": "^21.2.1",
     "axios": "^1.13.6",
+    "date-fns": "^4.1.0",
     "expo": "~54.0.33",
     "expo-constants": "~18.0.13",
     "expo-font": "~14.0.11",

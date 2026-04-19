@@ -50,3 +50,13 @@ export async function createUser(email: string, password: string, username: stri
         throw new Error(error);
     }
 }
+
+export async function signOut() {
+    try {
+        await account.deleteSession("current");
+        return true;
+    } catch (error: any) {
+        console.error("Error during sign out:", error);
+        throw new Error(error);
+    }
+}

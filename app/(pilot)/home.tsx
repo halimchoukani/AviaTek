@@ -1,23 +1,29 @@
-import { getAcademyById, getAcademyForPilot } from "@/lib/api/academies";
+import { getAcademyById } from "@/lib/api/academies";
 import { getCurrentUser } from "@/lib/appwrite";
-import { AcademyDocument, PilotDocument } from "@/lib/types";
+import { getSchedulesByPilot } from "@/lib/api/schedules";
+import { AcademyDocument, PilotDocument, ScheduleDocument } from "@/lib/types";
 import { Feather, MaterialCommunityIcons } from "@expo/vector-icons";
-import { useQuery, useSuspenseQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useRouter } from "expo-router";
-import React from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import React, { useState } from "react";
+import { ActivityIndicator, ScrollView, StyleSheet, Text, TouchableOpacity, View, RefreshControl, Alert } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { format } from "date-fns/format";
+import { isAfter } from "date-fns/isAfter";
+import { parseISO } from "date-fns/parseISO";
+import { signOut } from "@/lib/api/auth";
 
 export default function PilotHome() {
     const router = useRouter();
+    const queryClient = useQueryClient();
+    const [refreshing, setRefreshing] = useState(false);
 
-
-    const { data: user } = useSuspenseQuery({
+    const { data: user, isLoading: isFetchingUser, refetch: refetchUser } = useQuery({
         queryKey: ["currentUser"],
         queryFn: () => getCurrentUser() as unknown as Promise<PilotDocument>,
     })
 
-    const { data: academy, isLoading: isFetchingAcademy } = useQuery({
+    const { data: academy, isLoading: isFetchingAcademy, refetch: refetchAcademy } = useQuery({
         queryKey: ["academy", user?.$id],
         queryFn: async () => {
             if (!user) return null;
@@ -25,132 +31,185 @@ export default function PilotHome() {
             if (academyId) {
                 return await getAcademyById(academyId) as unknown as AcademyDocument;
             }
-            return await getAcademyForPilot();
+            return null;
         },
         enabled: !!user,
     })
-    if (isFetchingAcademy) {
+
+    const { data: schedules = [], isLoading: isFetchingSchedules, refetch: refetchSchedules } = useQuery({
+        queryKey: ["pilot-schedules", user?.$id],
+        queryFn: () => getSchedulesByPilot(user?.$id as string),
+        enabled: !!user,
+    })
+
+    const onRefresh = async () => {
+        setRefreshing(true);
+        await Promise.all([refetchUser(), refetchAcademy(), refetchSchedules()]);
+        setRefreshing(false);
+    };
+
+    const handleLogout = async () => {
+        Alert.alert("Logout", "Are you sure you want to sign out?", [
+            { text: "Cancel", style: "cancel" },
+            {
+                text: "Logout",
+                style: "destructive",
+                onPress: async () => {
+                    await signOut();
+                    router.replace("/(auth)/sign-in");
+                }
+            }
+        ]);
+    };
+
+    const upcomingSessions = schedules
+        .filter(s => isAfter(parseISO(s.startTime), new Date()))
+        .sort((a, b) => parseISO(a.startTime).getTime() - parseISO(b.startTime).getTime());
+
+    const nextSession = upcomingSessions[0];
+
+    if (isFetchingUser || isFetchingAcademy) {
         return (
             <SafeAreaView style={styles.container}>
-                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+                <View style={styles.centerContainer}>
                     <ActivityIndicator size="large" color="#C9A961" />
                 </View>
             </SafeAreaView>
         );
     }
-    if (academy === null) {
-        return (
-            <SafeAreaView style={styles.container}>
-                <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
-                    <Text style={styles.userName}>No Academy Assigned</Text>
-                </View>
-            </SafeAreaView>
-        );
-    }
+
     return (
         <SafeAreaView style={styles.container}>
-            <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={styles.scrollContent}>
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContent}
+                refreshControl={
+                    <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#C9A961" />
+                }
+            >
                 {/* Header */}
                 <View style={styles.header}>
                     <View>
-                        <Text style={styles.welcomeText}>Welcome back</Text>
+                        <Text style={styles.welcomeText}>System Ready</Text>
                         <Text style={styles.userName}>{user?.name ? `${user.name} ${user.lastname}` : "Capt. Pilot"}</Text>
                     </View>
-                    <TouchableOpacity style={styles.notificationBtn} onPress={() => router.push("/notifications")}>
-                        <Feather name="bell" size={24} color="#FFFFFF" />
-                        <View style={styles.notificationDot} />
-                    </TouchableOpacity>
+                    <View style={styles.headerRight}>
+                        <TouchableOpacity style={styles.notificationBtn} onPress={() => router.push("/notifications")}>
+                            <Feather name="bell" size={20} color="#FFFFFF" />
+                            <View style={styles.notificationDot} />
+                        </TouchableOpacity>
+                        <TouchableOpacity style={styles.notificationBtn} onPress={handleLogout}>
+                            <Feather name="log-out" size={20} color="#EF4444" />
+                        </TouchableOpacity>
+                    </View>
                 </View>
 
-                {/* Profile Card */}
-                <View style={styles.profileCard}>
-                    <View style={styles.profileCardHeader}>
-                        <View style={styles.planeIconContainer}>
-                            <MaterialCommunityIcons name="airplane" size={24} color="#C9A961" />
+                {/* Main Card: Pilot Status & Academy */}
+                <View style={styles.mainCard}>
+                    <View style={styles.mainCardTop}>
+                        <View style={styles.rankContainer}>
+                            <MaterialCommunityIcons name="shield-airplane" size={24} color="#C9A961" />
+                            <Text style={styles.rankText}>{user?.rank || "Student Pilot"}</Text>
                         </View>
-                        <View style={styles.statusBadge}>
-                            <View style={styles.statusDot} />
-                            <Text style={styles.statusText}>ACTIVE</Text>
+                        <View style={styles.activeBadge}>
+                            <View style={styles.activeDot} />
+                            <Text style={styles.activeText}>ON DUTY</Text>
                         </View>
                     </View>
 
-                    <Text style={styles.profileName}>{user?.name ? `${user.name} ${user.lastname}` : "Capt. Pilot"}</Text>
-                    <Text style={styles.academyName}>{academy?.name || "No Academy Assigned"}</Text>
+                    <Text style={styles.academyNameMain}>{academy?.name || "Independent Pilot"}</Text>
+                    <View style={styles.cardDivider} />
 
-                    <View style={styles.divider} />
-
-                    <View style={styles.licenseRow}>
+                    <View style={styles.cardFooter}>
                         <View>
-                            <Text style={styles.licenseLabel}>License ID</Text>
-                            <Text style={styles.licenseId}>{user?.licenseNumber || "ATPL-8842-US"}</Text>
+                            <Text style={styles.footerLabel}>LICENSE</Text>
+                            <Text style={styles.footerValue}>{user?.licenseNumber || "N/A"}</Text>
                         </View>
-                        <View style={styles.roleBadge}>
-                            <Text style={styles.roleBadgeText}>PILOT</Text>
+                        <View style={styles.hoursBadge}>
+                            <Feather name="clock" size={14} color="#C9A961" />
+                            <Text style={styles.hoursValue}>{user?.flightHours || 0}h Total</Text>
                         </View>
                     </View>
                 </View>
 
-                {/* Stats Row */}
-                <View style={styles.statsRow}>
-                    <View style={styles.statBox}>
-                        <Feather name="clock" size={20} color="#C9A961" style={styles.statIcon} />
-                        <Text style={styles.statValue}>{user?.flightHours || 247}</Text>
-                        <Text style={styles.statLabel}>Hours</Text>
+                {/* Stats Grid */}
+                <View style={styles.statsGrid}>
+                    <View style={styles.statCard}>
+                        <Feather name="map" size={18} color="#C9A961" />
+                        <Text style={styles.statNum}>12</Text>
+                        <Text style={styles.statDetail}>Destinations</Text>
                     </View>
-                    <View style={styles.statBox}>
-                        <Feather name="book-open" size={20} color="#C9A961" style={styles.statIcon} />
-                        <Text style={styles.statValue}>3</Text>
-                        <Text style={styles.statLabel}>Courses</Text>
+                    <View style={styles.statCard}>
+                        <Feather name="shield" size={18} color="#C9A961" />
+                        <Text style={styles.statNum}>100%</Text>
+                        <Text style={styles.statDetail}>Safety Score</Text>
                     </View>
-                    <View style={styles.statBox}>
-                        <Feather name="award" size={20} color="#C9A961" style={styles.statIcon} />
-                        <Text style={styles.statValue}>2</Text>
-                        <Text style={styles.statLabel}>Certs</Text>
+                    <View style={styles.statCard}>
+                        <Feather name="activity" size={18} color="#C9A961" />
+                        <Text style={styles.statNum}>{upcomingSessions.length}</Text>
+                        <Text style={styles.statDetail}>Upcoming</Text>
                     </View>
                 </View>
 
-                {/* Current Training */}
+                {/* Next Flight / Session */}
                 <View style={styles.sectionHeader}>
-                    <Text style={styles.sectionTitle}>Current Training</Text>
-                    <TouchableOpacity style={styles.viewAllBtn}>
-                        <Text style={styles.viewAllText}>View all</Text>
-                        <Feather name="chevron-right" size={16} color="#C9A961" />
-                    </TouchableOpacity>
+                    <Text style={styles.sectionTitle}>Next Deployment</Text>
                 </View>
 
-                <View style={styles.trainingCard}>
-                    <View style={styles.trainingHeader}>
-                        <Text style={styles.trainingTitle}>PPL Ground School</Text>
-                        <Text style={styles.trainingPercent}>78%</Text>
+                {nextSession ? (
+                    <TouchableOpacity
+                        style={styles.nextSessionCard}
+                        onPress={() => router.push("/(pilot)/sessions")}
+                    >
+                        <View style={styles.sessionTimeContainer}>
+                            <Text style={styles.sessionMonth}>{format(parseISO(nextSession.startTime), "MMM")}</Text>
+                            <Text style={styles.sessionDay}>{format(parseISO(nextSession.startTime), "dd")}</Text>
+                        </View>
+                        <View style={styles.sessionDetails}>
+                            <Text style={styles.sessionTitleText}>{nextSession.sessionType}</Text>
+                            <Text style={styles.sessionSubText}>
+                                {format(parseISO(nextSession.startTime), "HH:mm")} • {(nextSession as any).equipmentName}
+                            </Text>
+                        </View>
+                        <Feather name="chevron-right" size={20} color="#475569" />
+                    </TouchableOpacity>
+                ) : (
+                    <View style={styles.emptyCard}>
+                        <MaterialCommunityIcons name="calendar-blank" size={32} color="#475569" />
+                        <Text style={styles.emptyText}>No upcoming sessions scheduled</Text>
+                        <TouchableOpacity style={styles.bookBtn} onPress={() => router.push("../request-training")}>
+                            <Text style={styles.bookBtnText}>Request Session</Text>
+                        </TouchableOpacity>
                     </View>
-                    <View style={styles.progressBarBg}>
-                        <View style={[styles.progressBarFill, { width: '78%' }]} />
-                    </View>
-                    <Text style={styles.trainingSub}>8 of 12 modules • Next: Air Law Pt. 2</Text>
+                )}
+
+                {/* Quick Actions */}
+                <View style={styles.sectionHeader}>
+                    <Text style={styles.sectionTitle}>Fast Access</Text>
                 </View>
 
-                {/* Navigation Grid */}
-                <View style={styles.navGrid}>
-                    <TouchableOpacity style={styles.navItem} onPress={() => router.push("/(pilot)/profile")}>
-                        <View style={styles.navIconCircle}>
-                            <Feather name="user" size={24} color="#FFFFFF" />
+                <View style={styles.actionGrid}>
+                    <TouchableOpacity style={styles.actionItem} onPress={() => router.push("/(pilot)/requests")}>
+                        <View style={styles.actionIconBg}>
+                            <Feather name="file-text" size={22} color="#FFFFFF" />
                         </View>
-                        <Text style={styles.navLabel}>Profile</Text>
+                        <Text style={styles.actionLabel}>Pending</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItemActive} onPress={() => router.push("../request-training")}>
-                        <View style={styles.navIconCircleActive}>
-                            <Feather name="clipboard" size={24} color="#020617" />
+
+                    <TouchableOpacity style={styles.actionItemMain} onPress={() => router.push("../request-training")}>
+                        <View style={styles.actionIconBgMain}>
+                            <MaterialCommunityIcons name="plus-circle" size={28} color="#020617" />
                         </View>
-                        <Text style={styles.navLabelActive}>Request</Text>
+                        <Text style={styles.actionLabelMain}>Book</Text>
                     </TouchableOpacity>
-                    <TouchableOpacity style={styles.navItem}>
-                        <View style={styles.navIconCircle}>
-                            <Feather name="bar-chart-2" size={24} color="#FFFFFF" />
+
+                    <TouchableOpacity style={styles.actionItem} onPress={() => router.push("/(pilot)/profile")}>
+                        <View style={styles.actionIconBg}>
+                            <Feather name="settings" size={22} color="#FFFFFF" />
                         </View>
-                        <Text style={styles.navLabel}>Stats</Text>
+                        <Text style={styles.actionLabel}>Account</Text>
                     </TouchableOpacity>
                 </View>
-
 
             </ScrollView>
         </SafeAreaView>
@@ -162,339 +221,318 @@ const styles = StyleSheet.create({
         flex: 1,
         backgroundColor: "#020617",
     },
+    centerContainer: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
     scrollContent: {
-        padding: 20,
+        padding: 24,
         paddingBottom: 40,
     },
     header: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "center",
-        marginBottom: 25,
+        marginBottom: 32,
+    },
+    headerRight: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
     },
     welcomeText: {
-        color: "#94A3B8",
-        fontSize: 14,
+        color: "#C9A961",
+        fontSize: 12,
+        fontWeight: "900",
+        textTransform: "uppercase",
+        letterSpacing: 2,
     },
     userName: {
         color: "#FFFFFF",
-        fontSize: 22,
+        fontSize: 24,
         fontWeight: "bold",
         marginTop: 4,
     },
     notificationBtn: {
-        width: 44,
-        height: 44,
-        borderRadius: 22,
+        width: 48,
+        height: 48,
+        borderRadius: 24,
         backgroundColor: "#1E293B",
         justifyContent: "center",
         alignItems: "center",
-        position: "relative",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.1)",
     },
     notificationDot: {
         position: "absolute",
-        top: 12,
-        right: 12,
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: "#EF4444",
-        borderWidth: 2,
-        borderColor: "#1E293B",
-    },
-    profileCard: {
-        backgroundColor: "#1E293B",
-        borderRadius: 16,
-        padding: 20,
-        marginBottom: 20,
-        borderLeftWidth: 4,
-        borderLeftColor: "#C9A961",
-    },
-    profileCardHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 15,
-    },
-    planeIconContainer: {
-        width: 40,
-        height: 40,
-        borderRadius: 8,
-        backgroundColor: "rgba(201, 169, 97, 0.1)",
-        justifyContent: "center",
-        alignItems: "center",
-    },
-    statusBadge: {
-        flexDirection: "row",
-        alignItems: "center",
-        backgroundColor: "rgba(201, 169, 97, 0.1)",
-        paddingHorizontal: 10,
-        paddingVertical: 4,
-        borderRadius: 12,
-    },
-    statusDot: {
+        top: 14,
+        right: 14,
         width: 8,
         height: 8,
         borderRadius: 4,
         backgroundColor: "#C9A961",
-        marginRight: 6,
+        borderWidth: 2,
+        borderColor: "#1E293B",
     },
-    statusText: {
-        color: "#C9A961",
+    mainCard: {
+        backgroundColor: "#1E293B",
+        borderRadius: 24,
+        padding: 24,
+        marginBottom: 24,
+        borderWidth: 1,
+        borderColor: "rgba(201, 169, 97, 0.2)",
+        shadowColor: "#C9A961",
+        shadowOffset: { width: 0, height: 10 },
+        shadowOpacity: 0.1,
+        shadowRadius: 20,
+    },
+    mainCardTop: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+        marginBottom: 20,
+    },
+    rankContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+    },
+    rankText: {
+        color: "#FFFFFF",
+        fontSize: 14,
+        fontWeight: "700",
+        textTransform: "uppercase",
+    },
+    activeBadge: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "rgba(16, 185, 129, 0.1)",
+        paddingHorizontal: 12,
+        paddingVertical: 6,
+        borderRadius: 12,
+    },
+    activeDot: {
+        width: 6,
+        height: 6,
+        borderRadius: 3,
+        backgroundColor: "#10B981",
+        marginRight: 8,
+    },
+    activeText: {
+        color: "#10B981",
         fontSize: 10,
+        fontWeight: "900",
+    },
+    academyNameMain: {
+        color: "#94A3B8",
+        fontSize: 16,
+        fontWeight: "500",
+        marginBottom: 24,
+    },
+    cardDivider: {
+        height: 1,
+        backgroundColor: "rgba(148, 163, 184, 0.1)",
+        marginBottom: 24,
+    },
+    cardFooter: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+    footerLabel: {
+        color: "#64748B",
+        fontSize: 10,
+        fontWeight: "900",
+        marginBottom: 4,
+    },
+    footerValue: {
+        color: "#C9A961",
+        fontSize: 16,
+        fontWeight: "800",
+    },
+    hoursBadge: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 6,
+        backgroundColor: "rgba(201, 169, 97, 0.1)",
+        paddingHorizontal: 12,
+        paddingVertical: 8,
+        borderRadius: 12,
+    },
+    hoursValue: {
+        color: "#C9A961",
+        fontSize: 12,
         fontWeight: "bold",
     },
-    profileName: {
+    statsGrid: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        marginBottom: 32,
+    },
+    statCard: {
+        width: '31%',
+        backgroundColor: "#0F172A",
+        borderRadius: 20,
+        padding: 16,
+        alignItems: "center",
+        borderWidth: 1,
+        borderColor: "rgba(255,255,255,0.05)",
+    },
+    statNum: {
         color: "#FFFFFF",
-        fontSize: 20,
+        fontSize: 18,
+        fontWeight: "bold",
+        marginTop: 8,
+    },
+    statDetail: {
+        color: "#475569",
+        fontSize: 10,
+        fontWeight: "600",
+        marginTop: 2,
+    },
+    sectionHeader: {
+        marginBottom: 16,
+    },
+    sectionTitle: {
+        color: "#FFFFFF",
+        fontSize: 14,
+        fontWeight: "900",
+        textTransform: "uppercase",
+        letterSpacing: 1.5,
+        opacity: 0.8,
+    },
+    nextSessionCard: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "#1E293B",
+        borderRadius: 20,
+        padding: 16,
+        marginBottom: 32,
+        borderWidth: 1,
+        borderColor: "rgba(148, 163, 184, 0.1)",
+    },
+    sessionTimeContainer: {
+        width: 60,
+        height: 60,
+        backgroundColor: "rgba(201, 169, 97, 0.1)",
+        borderRadius: 16,
+        justifyContent: "center",
+        alignItems: "center",
+        marginRight: 16,
+    },
+    sessionMonth: {
+        color: "#C9A961",
+        fontSize: 10,
+        fontWeight: "900",
+        textTransform: "uppercase",
+    },
+    sessionDay: {
+        color: "#C9A961",
+        fontSize: 22,
+        fontWeight: "bold",
+    },
+    sessionDetails: {
+        flex: 1,
+    },
+    sessionTitleText: {
+        color: "#FFFFFF",
+        fontSize: 16,
         fontWeight: "bold",
         marginBottom: 4,
     },
-    academyName: {
-        color: "#94A3B8",
+    sessionSubText: {
+        color: "#64748B",
+        fontSize: 13,
+        fontWeight: "500",
+    },
+    emptyCard: {
+        backgroundColor: "rgba(30, 41, 59, 0.5)",
+        borderRadius: 20,
+        padding: 32,
+        alignItems: "center",
+        marginBottom: 32,
+        borderWidth: 1,
+        borderStyle: "dashed",
+        borderColor: "#334155",
+    },
+    emptyText: {
+        color: "#64748B",
         fontSize: 14,
+        marginTop: 12,
         marginBottom: 20,
+        textAlign: "center",
     },
-    divider: {
-        height: 1,
-        backgroundColor: "#334155",
-        marginBottom: 20,
+    bookBtn: {
+        backgroundColor: "rgba(201, 169, 97, 0.1)",
+        paddingHorizontal: 20,
+        paddingVertical: 10,
+        borderRadius: 12,
+        borderWidth: 1,
+        borderColor: "rgba(201, 169, 97, 0.2)",
     },
-    licenseRow: {
+    bookBtnText: {
+        color: "#C9A961",
+        fontSize: 13,
+        fontWeight: "bold",
+    },
+    actionGrid: {
         flexDirection: "row",
         justifyContent: "space-between",
         alignItems: "flex-end",
     },
-    licenseLabel: {
-        color: "#64748B",
-        fontSize: 12,
-        marginBottom: 4,
-    },
-    licenseId: {
-        color: "#C9A961",
-        fontSize: 16,
-        fontWeight: "bold",
-    },
-    roleBadge: {
-        backgroundColor: "rgba(148, 163, 184, 0.1)",
-        paddingHorizontal: 12,
-        paddingVertical: 4,
-        borderRadius: 4,
-        borderWidth: 1,
-        borderColor: "#475569",
-    },
-    roleBadgeText: {
-        color: "#94A3B8",
-        fontSize: 10,
-        fontWeight: "bold",
-    },
-    statsRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 25,
-    },
-    statBox: {
-        width: '31%',
+    actionItem: {
+        width: '30%',
         backgroundColor: "#1E293B",
-        borderRadius: 12,
-        padding: 15,
-        alignItems: "center",
-    },
-    statIcon: {
-        marginBottom: 8,
-    },
-    statValue: {
-        color: "#FFFFFF",
-        fontSize: 18,
-        fontWeight: "bold",
-    },
-    statLabel: {
-        color: "#64748B",
-        fontSize: 12,
-        marginTop: 2,
-    },
-    sectionHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 15,
-    },
-    sectionTitle: {
-        color: "#FFFFFF",
-        fontSize: 18,
-        fontWeight: "bold",
-    },
-    viewAllBtn: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    viewAllText: {
-        color: "#C9A961",
-        fontSize: 14,
-        marginRight: 4,
-    },
-    trainingCard: {
-        backgroundColor: "#1E293B",
-        borderRadius: 12,
-        padding: 15,
-        marginBottom: 25,
-    },
-    trainingHeader: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-        marginBottom: 12,
-    },
-    trainingTitle: {
-        color: "#FFFFFF",
-        fontSize: 16,
-        fontWeight: "bold",
-    },
-    trainingPercent: {
-        color: "#C9A961",
-        fontSize: 14,
-        fontWeight: "bold",
-    },
-    progressBarBg: {
-        height: 6,
-        backgroundColor: "#020617",
-        borderRadius: 3,
-        marginBottom: 12,
-    },
-    progressBarFill: {
-        height: 6,
-        backgroundColor: "#C9A961",
-        borderRadius: 3,
-    },
-    trainingSub: {
-        color: "#64748B",
-        fontSize: 12,
-    },
-    navGrid: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 30,
-    },
-    navItem: {
-        width: '31%',
-        backgroundColor: "#1E293B",
-        borderRadius: 12,
-        padding: 15,
+        borderRadius: 20,
+        padding: 16,
         alignItems: "center",
         height: 100,
         justifyContent: "center",
+        borderWidth: 1,
+        borderColor: "rgba(148, 163, 184, 0.1)",
     },
-    navItemActive: {
-        width: '35%',
+    actionItemMain: {
+        width: '34%',
         backgroundColor: "#C9A961",
-        borderRadius: 12,
-        padding: 15,
+        borderRadius: 24,
+        padding: 20,
         alignItems: "center",
         height: 110,
         justifyContent: "center",
-        marginTop: -5,
+        shadowColor: "#C9A961",
+        shadowOffset: { width: 0, height: 8 },
+        shadowOpacity: 0.3,
+        shadowRadius: 15,
+        elevation: 10,
     },
-    navIconCircle: {
+    actionIconBg: {
         width: 44,
         height: 44,
-        borderRadius: 12,
-        backgroundColor: "rgba(255, 255, 255, 0.05)",
+        borderRadius: 14,
+        backgroundColor: "rgba(255,255,255,0.05)",
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: 8,
+        marginBottom: 10,
     },
-    navIconCircleActive: {
-        width: 44,
-        height: 44,
-        borderRadius: 12,
+    actionIconBgMain: {
+        width: 48,
+        height: 48,
+        borderRadius: 16,
         backgroundColor: "rgba(2, 6, 23, 0.1)",
         justifyContent: "center",
         alignItems: "center",
-        marginBottom: 8,
+        marginBottom: 10,
     },
-    navLabel: {
+    actionLabel: {
         color: "#94A3B8",
-        fontSize: 14,
-        fontWeight: "bold",
+        fontSize: 12,
+        fontWeight: "700",
     },
-    navLabelActive: {
+    actionLabelMain: {
         color: "#020617",
-        fontSize: 14,
-        fontWeight: "bold",
+        fontSize: 13,
+        fontWeight: "900",
+        textTransform: "uppercase",
     },
-    alertCard: {
-        flexDirection: "row",
-        backgroundColor: "#1E293B",
-        borderRadius: 12,
-        padding: 15,
-        marginBottom: 12,
-        alignItems: "center",
-    },
-    alertIconCircleSuccess: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: "rgba(16, 185, 129, 0.1)",
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 15,
-    },
-    alertIconCircleWarning: {
-        width: 36,
-        height: 36,
-        borderRadius: 18,
-        backgroundColor: "rgba(245, 158, 11, 0.1)",
-        justifyContent: "center",
-        alignItems: "center",
-        marginRight: 15,
-    },
-    alertContent: {
-        flex: 1,
-    },
-    alertTitle: {
-        color: "#FFFFFF",
-        fontSize: 14,
-        fontWeight: "bold",
-        marginBottom: 2,
-    },
-    alertSub: {
-        color: "#64748B",
-        fontSize: 12,
-    },
-    alertTime: {
-        color: "#475569",
-        fontSize: 12,
-    },
-    footer: {
-        marginTop: 20,
-        borderTopWidth: 1,
-        borderTopColor: "#1E293B",
-        paddingTop: 20,
-    },
-    systemStatusRow: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        alignItems: "center",
-    },
-    systemStatusLabel: {
-        color: "#475569",
-        fontSize: 14,
-    },
-    operationalBadge: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    operationalDot: {
-        width: 8,
-        height: 8,
-        borderRadius: 4,
-        backgroundColor: "#10B981",
-        marginRight: 8,
-    },
-    operationalText: {
-        color: "#10B981",
-        fontSize: 14,
-        fontWeight: "500",
-    },
-
 });

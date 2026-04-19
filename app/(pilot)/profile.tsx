@@ -18,6 +18,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { appwriteConfig, databases, getCurrentUser } from "@/lib/appwrite";
 import { PilotDocument } from "@/lib/types";
+import { signOut } from "@/lib/api/auth";
 
 export default function PilotProfile() {
     const router = useRouter();
@@ -109,6 +110,20 @@ export default function PilotProfile() {
         setIsEditing(false);
     };
 
+    const handleLogout = async () => {
+        Alert.alert("Logout", "Are you sure you want to sign out?", [
+            { text: "Cancel", style: "cancel" },
+            {
+                text: "Logout",
+                style: "destructive",
+                onPress: async () => {
+                    await signOut();
+                    router.replace("/(auth)/sign-in");
+                }
+            }
+        ]);
+    };
+
     if (loading) {
         return (
             <View style={[styles.container, styles.center]}>
@@ -143,20 +158,27 @@ export default function PilotProfile() {
                             {licenseNumber || "No License Set"}
                         </Text>
 
-                        <TouchableOpacity
-                            style={isEditing ? styles.saveButtonHeader : styles.editButton}
-                            onPress={isEditing ? handleSave : () => setIsEditing(true)}
-                            disabled={saving}
-                        >
-                            <Feather
-                                name={isEditing ? "save" : "edit-2"}
-                                size={16}
-                                color={isEditing ? "#020617" : "#FFFFFF"}
-                            />
-                            <Text style={isEditing ? styles.saveButtonText : styles.editButtonText}>
-                                {saving ? "Saving..." : isEditing ? "Save" : "Edit"}
-                            </Text>
-                        </TouchableOpacity>
+                        <View style={styles.headerActions}>
+                            <TouchableOpacity
+                                style={isEditing ? styles.saveButtonHeader : styles.editButton}
+                                onPress={isEditing ? handleSave : () => setIsEditing(true)}
+                                disabled={saving}
+                            >
+                                <Feather
+                                    name={isEditing ? "save" : "edit-2"}
+                                    size={16}
+                                    color={isEditing ? "#020617" : "#FFFFFF"}
+                                />
+                                <Text style={isEditing ? styles.saveButtonText : styles.editButtonText}>
+                                    {saving ? "Saving..." : isEditing ? "Save" : "Edit"}
+                                </Text>
+                            </TouchableOpacity>
+
+                            <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
+                                <Feather name="log-out" size={16} color="#EF4444" />
+                                <Text style={styles.logoutButtonText}>Logout</Text>
+                            </TouchableOpacity>
+                        </View>
 
                         {isEditing && (
                             <TouchableOpacity style={styles.cancelButton} onPress={cancelEdit}>
@@ -480,4 +502,27 @@ const styles = StyleSheet.create({
         fontSize: 12,
         fontWeight: "bold",
     },
+    headerActions: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 12,
+        marginBottom: 24,
+    },
+    logoutButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "rgba(239, 68, 68, 0.1)",
+        paddingHorizontal: 16,
+        paddingVertical: 8,
+        borderRadius: 8,
+        borderWidth: 1,
+        borderColor: "rgba(239, 68, 68, 0.2)",
+        gap: 8,
+    },
+    logoutButtonText: {
+        color: "#EF4444",
+        fontSize: 14,
+        fontWeight: "bold",
+    },
 });
+

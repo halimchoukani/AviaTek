@@ -60,7 +60,7 @@ export const assignPilotToAcademy = async (pilotId: string) => {
                 roles: ["pilot"]
             })
         );
-        console.log(invite);
+        console.log("Invite : ", invite);
         if (invite.status === "completed") {
             await databases.updateDocument(
                 appwriteConfig.databaseId,
